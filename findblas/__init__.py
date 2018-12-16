@@ -63,7 +63,7 @@ def find_blas():
 	mkl_file_names1 = [pref + "mkl_rt" + ext[0]]
 	openblas_file_names1 = [pref + "openblas" + ext[0]]
 	atlas_file_names1 = [pref + "atlas" + ext[0], pref + "tatlas" + ext[0], pref + "satlas" + ext[0]]
-		gsl_file_names1 = [pref + "gslcblas" + ext[0]]
+	gsl_file_names1 = [pref + "gslcblas" + ext[0]]
 
 	if platform[:3] == "win":
 		openblas_file_names1 += ["libopenblas" + ext[2], "libopenblas" + ext[3]]
