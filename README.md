@@ -105,7 +105,7 @@ class build_ext_subclass( build_ext_with_blas ):
             for e in self.extensions:
                 e.extra_compile_args += ['-Ofast', '-fopenmp', '-march=native', '-std=c99']
                 e.extra_link_args += ['-fopenmp']
-        build_ext.build_extensions(self)
+        build_ext_with_blas.build_extensions(self)
 
 setup(
     name  = "inner_prod",
