@@ -4,9 +4,19 @@ Python module for finding installed BLAS library in a system, along with its hea
 
 BLAS (basic linear algebra subroutines) is a standard module for  fast linear algebra computations, widely used in packages for mathematical, statistical, and scientific computing. Unlike other tools such as R, Python does not come with a default BLAS installation, and any C/C++ or FORTRAN code intended to be wrapped (called from) Python that uses BLAS, requires either a system-wide install that would register `-lblas`, or manually supplying the path to the library before compiling the code. Some packages circumvent the requirement by supplying their own non-optimized replacements of BLAS functions that follow the same API and letting the user manually alter the linkage before compiling, but this approach leads to extra efforts and most users end up running slow code.
 
-This package eases the usage of BLAS functions in wrapped code. It can find either Python installs (e.g. `conda install openblas`, `pip install mkl`) or system installs (e.g. `apt-get install libopenblas-base libopenblas-dev`) of the following BLAS implementations: `MKL`, `OpenBLAS`, `ATLAS`, `GSL` - all of which conform to the CBLAS API (i.e. functions named like `cblas_ddot`, `cblas_sgemm`, etc.). Also included is a `build_ext_with_blas` class built on top of `Cython.distutils.build_ext` that can be passed to `distutils` and `setuptools`, and which will automatically add links to BLAS; and a header `findblas.h` that will include the function prototypes from the library that was found.
+This package eases the usage of BLAS functions in wrapped code. It can find either Python installs (e.g. `conda install openblas`, `pip install mkl`) or system installs (e.g. `apt-get install libopenblas-base libopenblas-dev`), and will also work in Windows with libraries from `m2w64` (e.g. `conda install -c msys2 m2w64-openblas`, `conda install -c msys2 m2w64-gsl`).
 
-The `build_ext_with_blas` module works also in builds originating from `readthedocs.org` without explicitly adding a specific BLAS dependency like `mkl`, so you can add `findblas` as a dependency for a Python package and host its documentation on RTD without additional hassle.
+Supports the following BLAS implementations:
+* `MKL` (free of charge but not open-source)
+* `OpenBLAS` (open-source)
+* `ATLAS` (open-source, must be built from source as it makes system-specific optimizations)
+* `GSL` (open-source and copyleft, not very optimized)
+
+All of which conform to the CBLAS API (i.e. functions named like `cblas_ddot`, `cblas_sgemm`, etc.).
+
+Also included is a `build_ext_with_blas` class built on top of `Cython.distutils.build_ext` that can be passed to `distutils` and `setuptools`, and which will automatically add links to BLAS; and a header `findblas.h` that will include the function prototypes from the library that was found.
+
+The `build_ext_with_blas` module works also in builds originating from `readthedocs.org` without explicitly adding a specific BLAS dependency like `mkl`, so you can add `findblas` as a dependency for a Python package and host its documentation on RTD without additional hassle (note that it will build, but code that uses BLAS will not execute in RTD).
 
 ## Installation
 
@@ -28,7 +38,7 @@ blas_path, blas_file, incl_path, incl_file, flags = findblas.find_blas()
 
 _Example here requires Cython (e.g. `conda install cython`, `pip install cython`)._
 
-Example `cfile.c` using BLAS - **important to incude `finblas.h`!**:
+Example `cfile.c` using BLAS - **important to incude `findblas.h`!**:
 ```c
 #include "findblas.h"
 double inner_prod(double *a, int n)
@@ -65,7 +75,16 @@ setup(
     )
 ```
 
-The `build_ext_with_blas` class can be subclassed in the exact same way as other `build_ext` modules - e.g. if you want to add compiler-specific arguments:
+The code can then be compiled with e.g. `python setup.py build_ext --inplace` or `python setup.py install`, and tested like this:
+```python
+import numpy as np, inner_prod
+inner_prod.call_inner_prod( np.arange(10).astype('float64') )
+>>> 285.0
+```
+
+
+
+The `build_ext_with_blas` class can be subclassed in the same way as other `build_ext` modules - e.g. if you want to add compiler-specific arguments:
 ```python
 try:
 	from setuptools import setup

@@ -6,7 +6,7 @@ except:
 setup(
   name = 'findblas',
   packages = ['findblas'],
-  version = '0.1.1',
+  version = '0.1.2',
   author = 'David Cortes',
   url = 'https://github.com/david-cortes/findblas',
   classifiers = [],

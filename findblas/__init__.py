@@ -49,7 +49,7 @@ def find_blas():
 	"""
 	
 	if platform[:3] == "win":
-		ext = [".dll", ".lib"]
+		ext = [".lib", ".dll", ".dll.a", ".a"]
 		pref = ""
 	elif platform[:3] == "dar":
 		ext = [".dylib", ".a"]
@@ -59,15 +59,21 @@ def find_blas():
 		pref = "lib"
 
 	## Possible file names for each library in different OSes
+	## Tries to look for dynamic-link libraries at first, but in MSVC, linking to the .dll's will fail
 	mkl_file_names1 = [pref + "mkl_rt" + ext[0]]
 	openblas_file_names1 = [pref + "openblas" + ext[0]]
 	atlas_file_names1 = [pref + "atlas" + ext[0], pref + "tatlas" + ext[0], pref + "satlas" + ext[0]]
-	gsl_file_names1 = [pref + "gsl" + ext[0], pref + "gslcblas" + ext[0]]
+		gsl_file_names1 = [pref + "gslcblas" + ext[0]]
+
+	if platform[:3] == "win":
+		openblas_file_names1 += ["libopenblas" + ext[2], "libopenblas" + ext[3]]
+		atlas_file_names1 += ["libatlas" + ext[2], "libatlas" + ext[3]]
+		gsl_file_names1 += ["libgslcblas" + ext[2], "libgslcblas" + ext[3]]
 
 	mkl_file_names2 = [pref + "mkl_rt" + ext[1]]
 	openblas_file_names2 = [pref + "openblas" + ext[1]]
 	atlas_file_names2 = [pref + "atlas" + ext[1], pref + "tatlas" + ext[1], pref + "satlas" + ext[1]]
-	gsl_file_names2 = [pref + "gsl" + ext[1], pref + "gslcblas" + ext[1]]
+	gsl_file_names2 = [pref + "gslcblas" + ext[1]]
 
 	incl_mkl_name = ["mkl.h", "mkl_cblas.h", "mkl_blas.h"]
 	incl_openblas_name = ["cblas-openblas.h"]
@@ -78,9 +84,9 @@ def find_blas():
 	## Will look up each potential file name in folders:
 	## -Suggested by NumPy
 	## -Suggested by SciPy
-	## -Suggested by Python
+	## -Python installation folder
 	## -In PATH or PYTHONPATH
-	## -In system install folders (not supported on Windows)
+	## -In system install folders
 	candidate_paths = []
 
 	## Also have to search where are the headers
@@ -130,6 +136,16 @@ def find_blas():
 	if platform[:3] == "win":
 		candidate_paths.append(os.path.join(python_fold, "Library", "bin"))
 		candidate_paths.append(os.path.join(python_fold, "Library", "lib"))
+		candidate_paths.append(os.path.join(python_fold, "Library", "mingw-w64", "bin"))
+		candidate_paths.append(os.path.join(python_fold, "Library", "mingw-w64", "lib"))
+		candidate_paths.append(os.path.join(python_fold, "Library", "bin", "gsl"))
+		candidate_paths.append(os.path.join(python_fold, "Library", "lib", "gsl"))
+		candidate_paths.append(os.path.join(python_fold, "Library", "mingw-w64", "bin", "gsl"))
+		candidate_paths.append(os.path.join(python_fold, "Library", "mingw-w64", "lib", "gsl"))
+		system_include_paths.append(os.path.join(python_fold, "Library", "include"))
+		system_include_paths.append(os.path.join(python_fold, "Library", "mingw-w64", "include"))
+		gsl_include_paths.append(os.path.join(python_fold, "Library", "include", "gsl"))
+		gsl_include_paths.append(os.path.join(python_fold, "Library", "mingw-w64", "include", "gsl"))
 	else:
 		candidate_paths.append(os.path.join(python_fold, "lib"))
 	for fld in get_paths().values():
