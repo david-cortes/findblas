@@ -10,7 +10,7 @@
 
 #if defined MKL_OWN_INCL_CBLAS
 #include "mkl_cblas.h"
-#elif defined USE_MKL
+#elif defined(USE_MKL) && !defined(NO_CBLAS_HEADER)
 #include "mkl.h"
 #elif defined OPENBLAS_OWN_INCL
 #include "cblas-openblas.h"
