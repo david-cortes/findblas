@@ -114,4 +114,5 @@ Additionally, the `build_ext_with_blas` module might define the following:
 * `GSL_OWN_INCL_CBLAS` : GSL header is named `gsl_cblas.h` (this is the default name in GSL).
 * `INCL_CBLAS` : a standard header named `cblas.h` was included.
 * `INCL_BLAS` : a standard header named `blas.h` was included.
+
 If `HAS_MKL` is defined and `MKL_OWN_INCL_CBLAS` is not defined, it means that it included the usual `mkl.h` (which is what should usually happen in MKL).

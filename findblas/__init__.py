@@ -36,7 +36,7 @@ def find_blas():
 	incl_path : str
 		Path where the corresponding header(s) can be found (e.g. '/usr/include')
 	incl_file : str
-		Name of the header file (e.g. 'cblas_openblas.h')
+		Name of the header file (e.g. 'cblas-openblas.h')
 	flags : list
 		Potential flags about the library that was found (can e.g. be passed to preprocessor), including:
 		- HAS_MKL (MKL library was found)
@@ -70,7 +70,7 @@ def find_blas():
 	gsl_file_names2 = [pref + "gsl" + ext[1], pref + "gslcblas" + ext[1]]
 
 	incl_mkl_name = ["mkl.h", "mkl_cblas.h", "mkl_blas.h"]
-	incl_openblas_name = ["cblas_openblas.h"]
+	incl_openblas_name = ["cblas-openblas.h"]
 	incl_atlas_name = []
 	incl_gsl_name = ["gsl_cblas.h", "gsl_blas.h"]
 	incl_generic_name = ['cblas.h', 'blas.h']
@@ -90,6 +90,7 @@ def find_blas():
 	gsl_include_paths = []
 	system_include_paths = []
 
+	sys.stdout = open(os.devnull, "w")
 	_try_add_from_command("numpy.distutils.system_info.get_info('mkl')['library_dirs']", candidate_paths)
 	_try_add_from_command("numpy.distutils.system_info.get_info('blas_mkl')['library_dirs']", candidate_paths)
 	_try_add_from_command("np.__config__.system_info.blas_mkl_info['library_dirs']", candidate_paths)
@@ -121,6 +122,7 @@ def find_blas():
 	_try_add_from_command("numpy.distutils.system_info.get_info('blas')['include_dirs']", gsl_include_paths)
 	_try_add_from_command("numpy.distutils.system_info.get_info('blas_opt')['include_dirs']", gsl_include_paths)
 	_try_add_from_command("scipy.__config__.blas_opt_info['include_dirs']", gsl_include_paths)
+	sys.stdout = sys.__stdout__
 
 	python_fold = sys.prefix
 	system_include_paths.append(os.path.join(python_fold, "include"))
