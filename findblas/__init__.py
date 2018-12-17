@@ -253,10 +253,6 @@ def find_blas():
 		except:
 			pass
 
-		## Try to add GSL
-		candidate_paths.append(os.path.join(python_fold, "Library", "bin", "gsl"))
-		candidate_paths.append(os.path.join(python_fold, "Library", "lib", "gsl"))
-
 	## Discard duplicated paths, but keep the order
 	search_paths = _deduplicate_paths(candidate_paths)
 
@@ -350,11 +346,11 @@ def find_blas():
 		if platform[:3] != "win":
 			found_syms = _find_symbols(pt, fname)
 			if found_syms[0] is True:
-				is_blas = True
-				flags_found += found_syms[1]
+				if found_syms[1] is not None:
+					is_blas = True
+					flags_found += found_syms[1]
 				ask_user = False
-			else:
-				ask_user = True
+
 
 		if ask_user:
 			## if not, ask the user explicitly

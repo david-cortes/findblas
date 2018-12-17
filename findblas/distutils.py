@@ -11,12 +11,17 @@ class build_ext_with_blas( build_ext ):
 
     def build_extensions(self):
         ## Lookup blas files and headers first
-        nocblas_err_msg = "No CBLAS library found - please install one with e.g. 'conda install openblas', 'pip install mkl mkl-include'."
+        nocblas_err_msg = "No CBLAS library found - please install one with e.g. "
+        nocblas_err_msg += "'conda install openblas' (Windows: 'conda install -c msys2 m2w64-openblas'), "
+        nocblas_err_msg += "or 'pip install mkl mkl-devel mkl-include' (Win/Max/Lin)."
         from_rtd = os.environ.get('READTHEDOCS') == 'True'
         if not from_rtd:
             blas_path, blas_file, incl_path, incl_file, flags = findblas.find_blas()
             if (blas_file is None) or (blas_path is None):
                 raise ValueError(nocblas_err_msg)
+            elif blas_file == "mkl_rt.dll":
+                txt = "Found MKL library at:\n" + blas_path
+                txt += "\nHowever, it is missing .lib files - please install them with 'conda install mkl-devel' or 'pip install mkl-devel'."
             else:
                 print("Installation: Using BLAS library found in:\n" + os.path.join(blas_path, blas_file) + "\n\n")
         else:
