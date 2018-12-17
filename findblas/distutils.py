@@ -13,7 +13,7 @@ class build_ext_with_blas( build_ext ):
         ## Lookup blas files and headers first
         nocblas_err_msg = "No CBLAS library found - please install one with e.g. "
         nocblas_err_msg += "'conda install openblas' (Windows: 'conda install -c msys2 m2w64-openblas'), "
-        nocblas_err_msg += "or 'pip install mkl mkl-devel mkl-include' (Win/Max/Lin)."
+        nocblas_err_msg += "or 'pip install mkl mkl-devel mkl-include' (Win/Mac/Lin)."
         from_rtd = os.environ.get('READTHEDOCS') == 'True'
         if not from_rtd:
             blas_path, blas_file, incl_path, incl_file, flags = findblas.find_blas()
