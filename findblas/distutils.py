@@ -20,8 +20,11 @@ class build_ext_with_blas( build_ext ):
             if (blas_file is None) or (blas_path is None):
                 raise ValueError(nocblas_err_msg)
             elif blas_file == "mkl_rt.dll":
-                txt = "Found MKL library at:\n" + blas_path
+                txt = "Found MKL library at:\n" + os.path.join(blas_path, blas_file)
                 txt += "\nHowever, it is missing .lib files - please install them with 'conda install mkl-devel' or 'pip install mkl-devel'."
+                raise ValueError(txt)
+            elif bool(re.search(r"\.dll$", blas_file)) and not bool(re.search("libopenblas", blas_file)):
+                raise ValueError("Found BLAS library at:\n" + os.path.join(blas_path, blas_file), "\nBut .lib files are missing!")
             else:
                 print("Installation: Using BLAS library found in:\n" + os.path.join(blas_path, blas_file) + "\n\n")
         else:
