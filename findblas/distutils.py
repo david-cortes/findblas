@@ -28,7 +28,7 @@ class build_ext_with_blas( build_ext ):
             else:
                 print("Installation: Using BLAS library found in:\n" + os.path.join(blas_path, blas_file) + "\n\n")
         else:
-            flags = ['NO_CBLAS_HEADER']
+            flags = ['_FOR_RTD']
             blas_path, blas_file, incl_path, incl_file = [None]*4
 
         ## if no CBLAS and no functions are present, there will be no prototypes for the cblas API

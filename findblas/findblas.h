@@ -8,18 +8,20 @@
 	header for you, or will declare the basic functions if no header is present.
 	*/
 
-#if defined MKL_OWN_INCL_CBLAS
-#include "mkl_cblas.h"
+#if defined _FOR_RTD
+  #include "rtd_mock.h" /* functions there are defined, but don't do anything */
+#elif defined MKL_OWN_INCL_CBLAS
+  #include "mkl_cblas.h"
 #elif defined(USE_MKL) && !defined(NO_CBLAS_HEADER)
-#include "mkl.h"
+  #include "mkl.h"
 #elif defined OPENBLAS_OWN_INCL
-#include "cblas-openblas.h"
+  #include "cblas-openblas.h"
 #elif defined GSL_OWN_INCL_CBLAS
-#include "gsl_cblas.h"
+  #include "gsl_cblas.h"
 #elif defined INCL_CBLAS
-#include "cblas.h"
+  #include "cblas.h"
 #elif defined INCL_BLAS
-#include "blas.h"
+  #include "blas.h"
 #else
 
 /*	Define prototypes for the entire cblas catalog - most of this is copy-paste from OpenBLAS with automatic substitutions

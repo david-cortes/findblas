@@ -16,7 +16,7 @@ All of which conform to the CBLAS API (i.e. functions named like `cblas_ddot`, `
 
 Also included is a `build_ext_with_blas` class built on top of `Cython.Distutils.build_ext` that can be passed to `distutils` and `setuptools`, and which will automatically add links to BLAS; and a header `findblas.h` that will include the function prototypes from the library that was found.
 
-The `build_ext_with_blas` module works also in builds originating from `readthedocs.org` without explicitly adding a specific BLAS dependency like `mkl`, so you can add `findblas` as a dependency for a Python package and host its documentation on RTD without additional hassle (note that it will build, but code that uses BLAS will not execute in RTD).
+The `build_ext_with_blas` module works also in builds originating from `readthedocs.org` without explicitly adding a specific BLAS dependency like `mkl`, so you can add `findblas` as a dependency for a Python package and host its documentation on RTD without additional hassle.
 
 ## Installation
 
