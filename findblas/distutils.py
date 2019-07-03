@@ -12,8 +12,7 @@ class build_ext_with_blas( build_ext ):
     def build_extensions(self):
         ## Lookup blas files and headers first
         nocblas_err_msg = "No CBLAS library found - please install one with e.g. "
-        nocblas_err_msg += "'conda install openblas' (Windows: 'conda install -c msys2 m2w64-openblas'), "
-        nocblas_err_msg += "or 'pip install mkl mkl-devel mkl-include' (Win/Mac/Lin)."
+        nocblas_err_msg += "'pip install mkl mkl-devel' (Win/Mac/Lin)."
         from_rtd = os.environ.get('READTHEDOCS') == 'True'
         if not from_rtd:
             blas_path, blas_file, incl_path, incl_file, flags = findblas.find_blas()
@@ -21,7 +20,7 @@ class build_ext_with_blas( build_ext ):
                 raise ValueError(nocblas_err_msg)
             elif blas_file == "mkl_rt.dll":
                 txt = "Found MKL library at:\n" + os.path.join(blas_path, blas_file)
-                txt += "\nHowever, it is missing .lib files - please install them with 'conda install mkl-devel' or 'pip install mkl-devel'."
+                txt += "\nHowever, it is missing .lib files - please install them with 'pip install mkl-devel'."
                 raise ValueError(txt)
             elif bool(re.search(r"\.dll$", blas_file)) and not bool(re.search("libopenblas", blas_file)):
                 raise ValueError("Found BLAS library at:\n" + os.path.join(blas_path, blas_file), "\nBut .lib files are missing!")
