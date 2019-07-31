@@ -8,7 +8,7 @@
 	header for you, or will declare the basic functions if no header is present.
 	*/
 
-#if defined _FOR_RTD
+#if defined(_FOR_RTD) && !defined(_FINDBLAS_MOCK_DEFINE)
   #include "rtd_mock.h" /* functions there are defined, but don't do anything */
 #elif defined MKL_OWN_INCL_CBLAS
   #include "mkl_cblas.h"
@@ -30,6 +30,7 @@
 extern "C" {
 #endif
 
+#ifndef _FINDBLAS_MOCK_DEFINE
 #include <stddef.h>
 #define CBLAS_INDEX size_t
 typedef enum CBLAS_ORDER     {CblasRowMajor=101, CblasColMajor=102} CBLAS_ORDER;
@@ -71,6 +72,7 @@ typedef enum CBLAS_SIDE      {CblasLeft=141, CblasRight=142} CBLAS_SIDE;
   #define openblas_complex_double_real(z)            ((z).real)
   #define openblas_complex_double_imag(z)            ((z).imag)
 #endif /* OPENBLAS_CONFIG_H */
+#endif /* _FINDBLAS_MOCK_DEFINE */
 
 float  cblas_sdsdot(const int n, const float alpha, const float *x, const int incx, const float *y, const int incy);
 double cblas_dsdot (const int n, const float *x, const int incx, const float *y, const int incy);
@@ -380,4 +382,4 @@ void cblas_zgeadd(const enum CBLAS_ORDER CORDER,const int crows, const int ccols
 }
 #endif
 
-#endif
+#endif /* _FINDBLAS_MOCK_DEFINE */

@@ -7,6 +7,10 @@
 
 /*	Define prototypes for the entire cblas catalog - most of this is copy-paste from OpenBLAS with automatic substitutions
 	https://github.com/xianyi/OpenBLAS */
+
+#ifndef _FINDBLAS_MOCK_DEFINE
+#define _FINDBLAS_MOCK_DEFINE 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -359,4 +363,6 @@ void cblas_zgeadd(const enum CBLAS_ORDER CORDER,const int crows, const int ccols
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
