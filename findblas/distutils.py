@@ -11,8 +11,10 @@ class build_ext_with_blas( build_ext ):
 
     def build_extensions(self):
         ## Lookup blas files and headers first
-        nocblas_err_msg = "No CBLAS library found - please install one with e.g. "
-        nocblas_err_msg += "'pip install mkl mkl-devel' (Win/Mac/Lin)."
+        nocblas_err_msg  = "No CBLAS library found - please install one with e.g. "
+        nocblas_err_msg += "'sudo apt-get install libopenblas-dev' (or 'intel-mkl-full') (Debian/Ubuntu)"
+        nocblas_err_msg += ", 'conda install mkl-devel' (Linux/Mac)"
+        nocblas_err_msg += ", or 'pip install mkl-devel' (Windows)."
         from_rtd = os.environ.get('READTHEDOCS') == 'True'
         if not from_rtd:
             blas_path, blas_file, incl_path, incl_file, flags = findblas.find_blas()
