@@ -397,10 +397,12 @@ def find_blas():
 	err_msg = "Could not locate MKL, OpenBLAS, ATLAS or GSL libraries - you'll need to manually modify setup.py to add BLAS path."
 	if blas_file is None:
 		try:
-			import scipy.linalg
-			blas_from_scipy = re.sub(r"\\", "/", scipy.linalg.cython_blas.__file__)
-			blas_file = re.sub(r".*/(.*)$", r"\1", blas_from_scipy)
-			blas_path = re.sub(r"(.*)/.*$", r"\1", blas_from_scipy)
+			import numpy as np
+			path_np_linalg = re.sub(r"\\", "/", np.linalg.__file__)
+			path_np_linalg = re.sub(r"(/+)?__init__\.py$", "", path_np_linalg)
+			files_np_linalg = [f for f in os.listdir(path_np_linalg) if bool(re.search("blas", f))]
+			blas_file = files_np_linalg[0]
+			blas_path = path_np_linalg
 			if platform[:3] != "win":
 				found_syms = _find_symbols(blas_path, blas_file)
 				if found_syms[0] is True:
@@ -409,10 +411,25 @@ def find_blas():
 					else:
 						flags_found += found_syms[1]
 
-			warnings.warn("No BLAS library found - taking SciPy's linalg.cython_blas file as library.")
-
+			warnings.warn("No BLAS library found - taking NumPy's linalg's file as library.")
 		except:
-			raise ValueError(err_msg)
+			try:
+				import scipy.linalg
+				blas_from_scipy = re.sub(r"\\", "/", scipy.linalg.cython_blas.__file__)
+				blas_file = re.sub(r".*/(.*)$", r"\1", blas_from_scipy)
+				blas_path = re.sub(r"(.*)/.*$", r"\1", blas_from_scipy)
+				if platform[:3] != "win":
+					found_syms = _find_symbols(blas_path, blas_file)
+					if found_syms[0] is True:
+						if found_syms[1] is None:
+							raise ValueError(err_msg)
+						else:
+							flags_found += found_syms[1]
+
+				warnings.warn("No BLAS library found - taking SciPy's linalg.cython_blas file as library.")
+
+			except:
+				raise ValueError(err_msg)
 
 	### Now lookup the include path
 	def get_inc_paths(blas_path, include_paths, system_include_paths):

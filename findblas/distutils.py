@@ -13,8 +13,8 @@ class build_ext_with_blas( build_ext ):
         ## Lookup blas files and headers first
         nocblas_err_msg  = "No CBLAS library found - please install one with e.g. "
         nocblas_err_msg += "'sudo apt-get install libopenblas-dev' (or 'intel-mkl-full') (Debian/Ubuntu)"
-        nocblas_err_msg += ", 'conda install mkl-devel' (Linux/Mac)"
-        nocblas_err_msg += ", or 'pip install mkl-devel' (Windows)."
+        nocblas_err_msg += ", 'conda install mkl-devel' (Linux / Mac)"
+        nocblas_err_msg += ", or 'pip install mkl-devel' (Windows / Linux / Mac)."
         from_rtd = os.environ.get('READTHEDOCS') == 'True'
         if not from_rtd:
             blas_path, blas_file, incl_path, incl_file, flags = findblas.find_blas()
@@ -80,7 +80,7 @@ class build_ext_with_blas( build_ext ):
                 if self.compiler.compiler_type == 'msvc': # visual studio
                     e.extra_link_args += [os.path.join(blas_path, blas_file)]
                 else: # everything else which cares about following standards
-                    e.extra_link_args += ["-L" + blas_path, "-l:" + blas_file]
+                    e.extra_link_args += ["-L" + blas_path, "-l:" + blas_file, "-Wl,-rpath=" + blas_path]
             e.define_macros += [(f, None) for f in flags]
             if incl_path is not None:
                 e.include_dirs.append(incl_path)
