@@ -398,11 +398,12 @@ def find_blas():
 	if blas_file is None:
 		try:
 			import numpy as np
-			path_np_linalg = re.sub(r"\\", "/", np.linalg.__file__)
-			path_np_linalg = re.sub(r"(/+)?__init__\.py$", "", path_np_linalg)
-			files_np_linalg = [f for f in os.listdir(path_np_linalg) if bool(re.search("blas", f))]
+			path_np = re.sub(r"\\", "/", np.__file__)
+			path_np = re.sub(r"(/+)?__init__\.py$", "", path_np)
+			path_np = os.path.join(path_np, ".libs")
+			files_np = [f for f in os.listdir(path_np) if bool(re.search("blas", f))]
 			blas_file = files_np_linalg[0]
-			blas_path = path_np_linalg
+			blas_path = path_np
 			if platform[:3] != "win":
 				found_syms = _find_symbols(blas_path, blas_file)
 				if found_syms[0] is True:
