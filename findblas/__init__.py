@@ -402,7 +402,7 @@ def find_blas():
 			path_np = re.sub(r"(/+)?__init__\.py$", "", path_np)
 			path_np = os.path.join(path_np, ".libs")
 			files_np = [f for f in os.listdir(path_np) if bool(re.search("blas", f))]
-			blas_file = files_np_linalg[0]
+			blas_file = files_np[0]
 			blas_path = path_np
 			if platform[:3] != "win":
 				found_syms = _find_symbols(blas_path, blas_file)
