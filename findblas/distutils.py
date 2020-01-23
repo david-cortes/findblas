@@ -11,7 +11,7 @@ class build_ext_with_blas( build_ext ):
 
     def build_extensions(self):
         ## Lookup blas files and headers first
-        nocblas_err_msg  = "No CBLAS library found - please install one with e.g. "
+        nocblas_err_msg  = "\n\nNo CBLAS library found - please install one with e.g. "
         nocblas_err_msg += "'sudo apt-get install libopenblas-dev' (or 'intel-mkl-full') (Debian/Ubuntu)"
         nocblas_err_msg += ", 'conda install mkl-devel' (Linux / Mac)"
         nocblas_err_msg += ", or 'pip install mkl-devel' (Windows / Linux / Mac)."
@@ -24,8 +24,10 @@ class build_ext_with_blas( build_ext ):
                 txt = "Found MKL library at:\n" + os.path.join(blas_path, blas_file)
                 txt += "\nHowever, it is missing .lib files - please install them with 'pip install mkl-devel'."
                 raise ValueError(txt)
-            elif bool(re.search(r"\.dll$", blas_file)) and not bool(re.search("libopenblas", blas_file)):
-                raise ValueError("Found BLAS library at:\n" + os.path.join(blas_path, blas_file), "\nBut .lib files are missing!")
+            elif bool(re.search(r"\.dll$", blas_file)):
+                txt = "Found BLAS library at:\n" + os.path.join(blas_path, blas_file)
+                txt += "\nBut .lib files are missing! Please reinstall it (e.g. 'pip install mkl-devel')."
+                raise ValueError(txt)
             else:
                 print("Installation: Using BLAS library found in:\n" + os.path.join(blas_path, blas_file) + "\n\n")
         else:
