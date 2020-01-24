@@ -18,6 +18,8 @@ Also included is a `build_ext_with_blas` class built on top of `Cython.Distutils
 
 The `build_ext_with_blas` module works also in builds originating from `readthedocs.org` without explicitly adding a specific BLAS dependency like `mkl`, so you can add `findblas` as a dependency for a Python package and host its documentation on RTD without additional hassle.
 
+Package has been tested in Windows, Linux, Mac, FreeBSD, and OpenBSD.
+
 ## Installation
 
 Package is available in PyPI, can be installed with:
