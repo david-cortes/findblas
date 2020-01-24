@@ -84,7 +84,10 @@ class build_ext_with_blas( build_ext ):
                 else: # everything else which cares about following standards
                     e.extra_link_args += ["-L" + blas_path, "-l:" + blas_file]
                     if bool(re.search(r"\.a$", blas_file)):
-                        e.extra_link_args += ["-lcblas", "-lblas"]
+                        if (bool(re.search(r"gsl", blas_file))):
+                            e.extra_link_args += ["-lgslcblas"]
+                        else:
+                            e.extra_link_args += ["-lcblas", "-lblas"]
                     else:
                         e.extra_link_args += ["-Wl,-rpath=" + blas_path]
             e.define_macros += [(f, None) for f in flags]
