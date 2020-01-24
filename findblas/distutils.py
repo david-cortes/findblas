@@ -82,7 +82,11 @@ class build_ext_with_blas( build_ext ):
                 if self.compiler.compiler_type == 'msvc': # visual studio
                     e.extra_link_args += [os.path.join(blas_path, blas_file)]
                 else: # everything else which cares about following standards
-                    e.extra_link_args += ["-L" + blas_path, "-l:" + blas_file, "-Wl,-rpath=" + blas_path]
+                    e.extra_link_args += ["-L" + blas_path, "-l:" + blas_file]
+                    if bool(re.search(r"\.a$", blas_file)):
+                        e.extra_link_args += ["-lcblas", "-lblas"]
+                    else:
+                        e.extra_link_args += ["-Wl,-rpath=" + blas_path]
             e.define_macros += [(f, None) for f in flags]
             if incl_path is not None:
                 e.include_dirs.append(incl_path)
