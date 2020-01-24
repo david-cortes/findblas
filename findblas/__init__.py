@@ -336,7 +336,7 @@ def find_blas():
 			if platform[:3] != "win":
 				found_syms = _find_symbols(blas_path, blas_file)
 				if found_syms is not None:
-					flags_found += found_syms[2]
+					flags_found += found_syms[1]
 
 	### Try regex matching
 	def check_is_blas(pt, fname):
