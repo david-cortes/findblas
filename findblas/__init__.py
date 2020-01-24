@@ -331,12 +331,19 @@ def find_blas():
 
 	### Generic
 	if blas_file is None:
-		blas_path, blas_file = search_blas_lib(search_paths, [pref + "blas" + e for e in ext])
+		blas_path, blas_file = search_blas_lib(search_paths, [pref + "cblas" + e for e in ext])
 		if blas_file is not None:
 			if platform[:3] != "win":
 				found_syms = _find_symbols(blas_path, blas_file)
 				if found_syms is not None:
 					flags_found += found_syms[1]
+		else:
+			blas_path, blas_file = search_blas_lib(search_paths, [pref + "blas" + e for e in ext])
+			if blas_file is not None:
+				if platform[:3] != "win":
+					found_syms = _find_symbols(blas_path, blas_file)
+					if found_syms is not None:
+						flags_found += found_syms[1]
 
 	### Try regex matching
 	def check_is_blas(pt, fname):
