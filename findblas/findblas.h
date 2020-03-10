@@ -30,8 +30,9 @@
 extern "C" {
 #endif
 
-#ifndef _FINDBLAS_MOCK_DEFINE
+#if !defined(_FINDBLAS_MOCK_DEFINE) && !defined(CBLAS_H)
 #include <stddef.h>
+#define CBLAS_H
 #define CBLAS_INDEX size_t
 typedef enum CBLAS_ORDER     {CblasRowMajor=101, CblasColMajor=102} CBLAS_ORDER;
 typedef enum CBLAS_TRANSPOSE {CblasNoTrans=111, CblasTrans=112, CblasConjTrans=113, CblasConjNoTrans=114} CBLAS_TRANSPOSE;
@@ -382,4 +383,4 @@ void cblas_zgeadd(const enum CBLAS_ORDER CORDER,const int crows, const int ccols
 }
 #endif
 
-#endif /* _FINDBLAS_MOCK_DEFINE */
+#endif /*!defined(_FINDBLAS_MOCK_DEFINE) && !defined(CBLAS_H) */
