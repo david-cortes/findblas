@@ -84,7 +84,12 @@ class build_ext_with_blas( build_ext ):
                 if self.compiler.compiler_type == 'msvc': # visual studio
                     e.extra_link_args += [os.path.join(blas_path, blas_file)]
                 else: # everything else which cares about following standards
-                    e.extra_link_args += ["-L" + blas_path, "-l" + blas_file]
+                    if platform[:3] != "dar":
+                        e.extra_link_args += ["-L" + blas_path, "-l:" + blas_file]
+                    else:
+                        blas_shortened = re.sub(r"^lib", "", blas_file)
+                        blas_shortened = re.sub(r"\.[A-Za-z]+$", "", blas_shortened)
+                        e.extra_link_args += ["-L" + blas_path, "-l" + blas_shortened]
                     if bool(re.search(r"\.a$", blas_file)):
                         if (bool(re.search(r"gsl", blas_file))):
                             e.extra_link_args += ["-lgslcblas"]
