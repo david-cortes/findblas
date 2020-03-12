@@ -1,5 +1,7 @@
 from Cython.Distutils import build_ext
 import findblas, re, os, sys, warnings
+from sys import platform
+import platform as platform_module
 
 ## https://stackoverflow.com/questions/52905458/link-cython-wrapped-c-functions-against-blas-from-numpy
 class build_ext_with_blas( build_ext ):
@@ -82,14 +84,17 @@ class build_ext_with_blas( build_ext ):
                 if self.compiler.compiler_type == 'msvc': # visual studio
                     e.extra_link_args += [os.path.join(blas_path, blas_file)]
                 else: # everything else which cares about following standards
-                    e.extra_link_args += ["-L" + blas_path, "-l:" + blas_file]
+                    e.extra_link_args += ["-L" + blas_path, "-l" + blas_file]
                     if bool(re.search(r"\.a$", blas_file)):
                         if (bool(re.search(r"gsl", blas_file))):
                             e.extra_link_args += ["-lgslcblas"]
                         else:
                             e.extra_link_args += ["-lcblas", "-lblas"]
                     else:
-                        e.extra_link_args += ["-Wl,-rpath=" + blas_path]
+                        if platform[:3] == "dar":
+                            e.extra_link_args += ["-Wl,-rpath," + blas_path]
+                        else:
+                            e.extra_link_args += ["-Wl,-rpath=" + blas_path]
             e.define_macros += [(f, None) for f in flags]
             if incl_path is not None:
                 e.include_dirs.append(incl_path)
