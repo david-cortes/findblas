@@ -280,7 +280,6 @@ def find_blas():
 	if blas_file is None:
 		blas_path, blas_file = search_blas_lib(search_paths, mkl_file_names1)
 		if blas_file is not None:
-			blas_file = "mkl_rt"
 			flags_found.append("HAS_MKL")
 
 	## OpenBLAS
