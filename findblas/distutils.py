@@ -31,7 +31,8 @@ class build_ext_with_blas( build_ext ):
                 txt += "\nBut .lib files are missing! Please reinstall it (e.g. 'pip install mkl-devel')."
                 raise ValueError(txt)
             else:
-                print("Installation: Using BLAS library found in:\n" + os.path.join(blas_path, blas_file) + "\n\n")
+            	if platform[:3] != "win":
+                	print("Installation: Using BLAS library found in:\n" + os.path.join(blas_path, blas_file) + "\n\n")
         else:
             flags = ['_FOR_RTD']
             blas_path, blas_file, incl_path, incl_file = [None]*4
