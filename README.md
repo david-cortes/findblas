@@ -1,4 +1,4 @@
-# FindBlas
+# FindBLAS
 
 Python module for finding installed BLAS library in a system, along with its headers. Intended to be used for easily linking Cython-wrapped C/C++ code that calls BLAS functions to the corresponding system's library.
 
@@ -17,6 +17,8 @@ All of which conform to the CBLAS API (i.e. functions named like `cblas_ddot`, `
 Also included is a `build_ext_with_blas` class built on top of `Cython.Distutils.build_ext` that can be passed to `distutils` and `setuptools`, and which will automatically add links to BLAS; and a header `findblas.h` that will include the function prototypes from the library that was found.
 
 The `build_ext_with_blas` module works also in builds originating from `readthedocs.org` without explicitly adding a specific BLAS dependency like `mkl`, so you can add `findblas` as a dependency for a Python package and host its documentation on RTD without additional hassle.
+
+*Note about RTD: when building in `readthedocs.org`, it will only define BLAS functions, not LAPACK functions, so if your package uses LAPACK and is to be hosted at readthedocs, you'll need to use the mock system in the docs configuration, or alternatively, add a specific dependency for RTD outside of the default `requirements.txt` such as `mkl-devel`. You'll also have to undefine or redefine the environment variable `'READTHEDOCS'` in the later case.*
 
 Package has been tested in Windows, Linux, Mac, FreeBSD, and OpenBSD.
 
@@ -62,11 +64,11 @@ def call_inner_prod(np.ndarray[double, ndim=1] a):
 Example `setup.py` for packaging them:
 ```python
 try:
-	from setuptools import setup
+    from setuptools import setup, Extension
 except:
-	from distutils.core import setup
+    from distutils.core import setup
+    from distutils.extension import Extension
 import numpy as np
-from distutils.extension import Extension
 from findblas.distutils import build_ext_with_blas
 
 setup(
@@ -89,11 +91,11 @@ inner_prod.call_inner_prod( np.arange(10).astype('float64') )
 The `build_ext_with_blas` class can be subclassed in the same way as other `build_ext` modules - e.g. if you want to add compiler-specific arguments:
 ```python
 try:
-	from setuptools import setup
+    from setuptools import setup, Extension
 except:
-	from distutils.core import setup
+    from distutils.core import setup
+    from distutils.extension import Extension
 import numpy as np
-from distutils.extension import Extension
 from findblas.distutils import build_ext_with_blas
 
 ## https://stackoverflow.com/questions/724664/python-distutils-how-to-get-a-compiler-that-is-going-to-be-used
