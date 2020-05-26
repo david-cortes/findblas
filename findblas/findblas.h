@@ -8,9 +8,7 @@
 	header for you, or will declare the basic functions if no header is present.
 	*/
 
-#if defined(_FOR_RTD) && !defined(_FINDBLAS_MOCK_DEFINE)
-  #include "rtd_mock.h" /* functions there are defined, but don't do anything */
-#elif defined MKL_OWN_INCL_CBLAS
+#if defined MKL_OWN_INCL_CBLAS
   #include "mkl_cblas.h"
 #elif defined(USE_MKL) && !defined(NO_CBLAS_HEADER)
   #include "mkl.h"

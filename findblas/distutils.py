@@ -101,6 +101,9 @@ class build_ext_with_blas( build_ext ):
                             e.extra_link_args += ["-Wl,-rpath," + blas_path]
                         else:
                             e.extra_link_args += ["-Wl,-rpath=" + blas_path]
+
+            else:
+                e.sources.append(os.path.join(finblas_head_fold, "rtd_mock.c"))
             e.define_macros += [(f, None) for f in flags]
             if incl_path is not None:
                 e.include_dirs.append(incl_path)

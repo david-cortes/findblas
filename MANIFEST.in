@@ -1,2 +1,2 @@
 include findblas/findblas.h
-include findblas/rtd_mock.h
+include findblas/rtd_mock.c

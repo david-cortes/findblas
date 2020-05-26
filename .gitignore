@@ -1,0 +1,12 @@
+ 
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# dist files
+dist/
+*.zip
+*.tar.gz
+
+.directory
+findblas.egg-info/*

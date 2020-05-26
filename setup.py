@@ -6,10 +6,10 @@ except:
 setup(
   name = 'findblas',
   packages = ['findblas'],
-  version = '0.1.9',
+  version = '0.1.10',
   author = 'David Cortes',
   url = 'https://github.com/david-cortes/findblas',
   classifiers = [],
-  data_files=[('include', ['findblas/findblas.h', 'findblas/rtd_mock.h'])],
+  data_files=[('include', ['findblas/findblas.h', 'findblas/rtd_mock.c'])],
   include_package_data=True
 ) 
