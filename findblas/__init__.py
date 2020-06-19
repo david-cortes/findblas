@@ -155,7 +155,9 @@ def find_blas():
 			system_include_paths.append(re.sub(r"^(.*include).*$", r"\1", fld))
 
 	_try_add_from_command("os.environ['PATH'].split(\":\")", candidate_paths)
+	_try_add_from_command("os.environ['PATH'].split(\";\")", candidate_paths)
 	_try_add_from_command("os.environ['PYTHONPATH'].split(\":\")", candidate_paths)
+	_try_add_from_command("os.environ['PYTHONPATH'].split(\";\")", candidate_paths)
 
 	paths_from_sys = [pt for pt in sys.path if bool(re.search("[Ll]ib", pt))]
 	if platform[:3] == "win":
