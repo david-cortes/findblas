@@ -255,6 +255,67 @@ def find_blas():
 		except:
 			pass
 
+	## Potential cases of PEP518 environments
+	paths_pep518 = []
+	for path in candidate_paths:
+		if bool(re.search(r"[Oo]verlay", path)):
+			clean_path = re.sub(r"^(.*[Oo]verlay).*$", r"\1", path)
+
+			paths_pep518.append(clean_path)
+
+			paths_pep518.append(os.path.join(clean_path, "lib"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "gsl"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "gsl", "lib"))
+			gsl_include_paths.append(os.path.join(clean_path, "lib", "gsl", "include"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "gslcblas"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "cblas"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "blas"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "mkl"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "mkl", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "mkl", "lib", "intel"))
+			mkl_include_paths.append(os.path.join(clean_path, "lib", "mkl", "include"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "atlas"))
+			atlas_include_paths.append(os.path.join(clean_path, "lib", "atlas", "include"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "atlas", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "libatlas"))
+			atlas_include_paths.append(os.path.join(clean_path, "lib", "libatlas", "include"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "libatlas", "lib"))
+
+			paths_pep518.append(os.path.join(clean_path, "Lib"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "gsl"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "gsl", "lib"))
+			gsl_include_paths.append(os.path.join(clean_path, "Lib", "gsl", "include"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "gslcblas"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "cblas"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "blas"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "mkl"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "mkl", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "mkl", "lib", "intel"))
+			mkl_include_paths.append(os.path.join(clean_path, "Lib", "mkl", "include"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "atlas"))
+			atlas_include_paths.append(os.path.join(clean_path, "Lib", "atlas", "include"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "atlas", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "libatlas"))
+			atlas_include_paths.append(os.path.join(clean_path, "Lib", "libatlas", "include"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "libatlas", "lib"))
+
+			system_include_paths.append(os.path.join(clean_path, "include"))
+			gsl_include_paths.append(os.path.join(clean_path, "include", "gsl"))
+			gsl_include_paths.append(os.path.join(clean_path, "include", "gsl", "include"))
+			gsl_include_paths.append(os.path.join(clean_path, "include", "gslcblas"))
+			system_include_paths.append(os.path.join(clean_path, "include", "cblas"))
+			system_include_paths.append(os.path.join(clean_path, "include", "blas"))
+			mkl_include_paths.append(os.path.join(clean_path, "include", "mkl"))
+			mkl_include_paths.append(os.path.join(clean_path, "include", "mkl", "lib"))
+			mkl_include_paths.append(os.path.join(clean_path, "include", "mkl", "lib", "intel"))
+			mkl_include_paths.append(os.path.join(clean_path, "include", "mkl", "include"))
+			atlas_include_paths.append(os.path.join(clean_path, "include", "atlas"))
+			atlas_include_paths.append(os.path.join(clean_path, "include", "atlas", "include"))
+			atlas_include_paths.append(os.path.join(clean_path, "include", "libatlas"))
+			atlas_include_paths.append(os.path.join(clean_path, "lib", "libatlas", "include"))
+
+	candidate_paths += paths_pep518
+
 	## Discard duplicated paths, but keep the order
 	search_paths = _deduplicate_paths(candidate_paths)
 
