@@ -84,9 +84,28 @@ class build_ext_with_blas( build_ext ):
                         finblas_head_fold = os.path.join(clean_path, "lib", "site-packages", "findblas")
                         break
 
-            ## if the header file doesn't exist, shall raise en error
+            ## if still not found, try to get it from pip itself
             else:
-                raise ValueError("Could not find header file from 'findblas' - please try reinstalling with 'pip install --force findblas'")
+                import pip
+                import io
+                from contextlib import redirect_stdout
+                pip_outp = io.StringIO()
+                with redirect_stdout(pip_outp):
+                    pip.main(['show', '-f', 'findblas'])
+                pip_outp = pip_outp.getvalue()
+                pip_outp = pip_outp.split("\n")
+                for ln in pip_outp:
+                    if bool(re.search(r"^Location", ln)):
+                        files_root = re.sub(r"^Location:\s+", "", ln)
+                        break
+                for ln in pip_outp:
+                    if bool(re.search(r"findblas\.h$", ln)):
+                        finblas_head_fold = os.path.join(files_root, re.sub(r"^(.*)[/\\]*findblas\.h$", r"\1", ln))
+                        break
+
+                ## if the header file doesn't exist, shall raise en error
+                else:
+                    raise ValueError("Could not find header file from 'findblas' - please try reinstalling with 'pip install --force findblas'")
 
         ## Pass extra flags for the header
         warning_msg = "No CBLAS headers were found - function propotypes might be unreliable."
