@@ -50,9 +50,43 @@ class build_ext_with_blas( build_ext ):
         elif os.path.exists(os.path.join(sys.prefix, "include", "findblas.h")):
             finblas_head_fold = os.path.join(sys.prefix, "include")
 
-        ## if the header file doesn't exist, shall raise en error
+        elif os.path.exists(os.path.join(sys.prefix, "findblas.h")):
+            finblas_head_fold = sys.prefix
+
+        ## if on a PEP518 environment, might be located elsewhere
         else:
-            raise ValueError("Could not find header file from 'findblas' - please try reinstalling with 'pip install --force findblas'")
+            candidate_paths = [sys.prefix]
+            try:
+                candidate_paths.append(os.environ['PYTHONPATH'])
+            except:
+                pass
+            if platform[:3] == "win":
+                candidate_paths += os.environ['PATH'].split(";")
+            else:
+                candidate_paths += os.environ['PATH'].split(":")
+
+            for path in candidate_paths:
+                if bool(re.search(r"[Oo]verlay", path)):
+                    clean_path = re.sub(r"^(.*[Oo]verlay).*$", r"\1", path)
+                    if os.path.exists( os.path.join(clean_path, "include", "findblas.h") ):
+                        finblas_head_fold = os.path.join(clean_path, "include")
+                        break
+                    elif os.path.exists( os.path.join(clean_path, "findblas.h") ):
+                        finblas_head_fold = clean_path
+                        break
+                    elif os.path.exists( os.path.join(clean_path, "site-packages", "findblas", "findblas.h") ):
+                        finblas_head_fold = os.path.join(clean_path, "site-packages", "findblas")
+                        break
+                    elif os.path.exists( os.path.join(clean_path, "Lib", "site-packages", "findblas", "findblas.h") ):
+                        finblas_head_fold = os.path.join(clean_path, "Lib", "site-packages", "findblas")
+                        break
+                    elif os.path.exists( os.path.join(clean_path, "lib", "site-packages", "findblas", "findblas.h") ):
+                        finblas_head_fold = os.path.join(clean_path, "lib", "site-packages", "findblas")
+                        break
+
+            ## if the header file doesn't exist, shall raise en error
+            else:
+                raise ValueError("Could not find header file from 'findblas' - please try reinstalling with 'pip install --force findblas'")
 
         ## Pass extra flags for the header
         warning_msg = "No CBLAS headers were found - function propotypes might be unreliable."
