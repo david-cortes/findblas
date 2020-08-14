@@ -320,6 +320,38 @@ def find_blas():
 
 	candidate_paths += paths_pep518
 
+	## Try getting MKL from pip too
+	try:
+		import pip
+		import io
+		from contextlib import redirect_stdout
+
+		try:
+			pip_outp = io.StringIO()
+			with redirect_stdout(pip_outp):
+				pip.main(['show', '-f', 'mkl'])
+		except:
+			pip_outp = io.StringIO()
+			with redirect_stdout(pip_outp):
+				os.system("pip show -f mkl")
+
+		pip_outp = pip_outp.getvalue()
+		pip_outp = pip_outp.split("\n")
+		for ln in pip_outp:
+			if bool(re.search(r"^Location", ln)):
+				files_root = re.sub(r"^Location:\s+", "", ln)
+				files_root = files_root.rstrip()
+				break
+
+		for ln in pip_outp:
+			if bool(re.search(r"mkl_rt\.[solibdyaSOLIBDYA]+$", ln)):
+				candidate_paths.append(
+					os.path.join(files_root, re.sub(r"^\s*(.*)[/\\]+[lib]*mkl_rt\.[solibdyaSOLIBDYA]+$", r"\1", ln))
+				)
+
+	except:
+		pass
+
 	## Discard duplicated paths, but keep the order
 	search_paths = _deduplicate_paths(candidate_paths)
 
