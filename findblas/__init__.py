@@ -326,12 +326,16 @@ def find_blas():
 		import io
 		from contextlib import redirect_stdout
 
+		pip_outp = io.StringIO()
 		try:
-			pip_outp = io.StringIO()
-			with redirect_stdout(pip_outp):
-				pip.main(['show', '-f', 'mkl'])
+			try:
+				with redirect_stdout(pip_outp):
+					pip.main(['show', '-f', 'mkl'])
+			except:
+				from pip._internal import main as pip_main
+				with redirect_stdout(pip_outp):
+					pip_main(['show', '-f', 'mkl'])
 		except:
-			pip_outp = io.StringIO()
 			with redirect_stdout(pip_outp):
 				os.system("pip show -f mkl")
 
@@ -344,6 +348,7 @@ def find_blas():
 				break
 
 		for ln in pip_outp:
+			## exts: .o, .so, .a, .lib, .dll, .dynlib
 			if bool(re.search(r"mkl_rt\.[solibdyaSOLIBDYA]+$", ln)):
 				candidate_paths.append(
 					os.path.join(files_root, re.sub(r"^\s*(.*)[/\\]+[lib]*mkl_rt\.[solibdyaSOLIBDYA]+$", r"\1", ln))
