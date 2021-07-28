@@ -1,6 +1,7 @@
 import os, sys, re, warnings
 from sys import platform
 from sysconfig import get_paths
+from copy import deepcopy
 import platform as platform_module
 try:
 	import numpy as np
@@ -13,6 +14,8 @@ try:
 except:
 	pass
 
+### TODO: maybe add a 'find_lapack' equivalent
+
 def find_blas():
 	"""
 	Find installed BLAS library
@@ -20,7 +23,7 @@ def find_blas():
 	Find installed BLAS library either through a system install (e.g. by a package manager, CPACK, or downloading installer from intel's webpage),
 	or a python install (e.g. 'conda install mkl mkl-include openblas gsl', 'pip install mkl mkl-include').
 
-	Can find any of: MKL, OpenBLAS, ATLAS - GSL, all of which offer the standard CBLAS API (e.g. functions named like 'cblas_dgemm').
+	Can find any of: MKL, OpenBLAS, BLIS, ATLAS, GSL - all of which offer the standard CBLAS API (e.g. functions named like 'cblas_dgemm').
 
 	In non-Windows systems, will try to use either 'pyelftools' or system's 'readelf' to inspect the library's functions if the
 	library's file name is generic (e.g. 'libblas.so').
@@ -41,6 +44,7 @@ def find_blas():
 		Potential flags about the library that was found (can e.g. be passed to preprocessor), including:
 		- HAS_MKL (MKL library was found)
 		- HAS_OPENBLAS (OpenBLAS library was found)
+		- HAS_BLIS (BLIS library was found - note that is does not include LAPACK like the others)
 		- HAS_ATLAS (ATLAS library was found)
 		- HAS_GSL (GSL library was found)
 		- UNKNWON_BLAS (Vendor cannot be identified)
@@ -60,23 +64,30 @@ def find_blas():
 
 	## Possible file names for each library in different OSes
 	## Tries to look for dynamic-link libraries at first, but in MSVC, linking to the .dll's will fail
-	mkl_file_names1 = [pref + "mkl_rt" + ext[0]]
-	openblas_file_names1 = [pref + "openblas" + ext[0]]
-	atlas_file_names1 = [pref + "atlas" + ext[0], pref + "tatlas" + ext[0], pref + "satlas" + ext[0]]
-	gsl_file_names1 = [pref + "gslcblas" + ext[0]]
+	process_fnames1 = lambda lst: [pref + nm + ext[0] for nm in lst]
+	mkl_file_names1 = process_fnames1(["mkl_rt"])
+	openblas_file_names1 = process_fnames1(["openblas"])
+	blis_file_names1 = process_fnames1(["blis", "blis-mt"])
+	atlas_file_names1 = process_fnames1(["atlas", "tatlas", "satlas"])
+	gsl_file_names1 = process_fnames1(["gslcblas"])
 
 	if platform[:3] == "win":
-		openblas_file_names1 += ["libopenblas" + ext[2], "libopenblas" + ext[3]]
-		atlas_file_names1 += ["libatlas" + ext[2], "libatlas" + ext[3]]
-		gsl_file_names1 += ["libgslcblas" + ext[2], "libgslcblas" + ext[3]]
+		add_windows_fnames1 = lambda lst: [nm + ext[2] for nm in lst]
+		openblas_file_names1 += add_windows_fnames1(["libopenblas", "libopenblas"])
+		blis_file_names1 += add_windows_fnames1(["libblis", "libblis-mt"])
+		atlas_file_names1 += add_windows_fnames1(["libatlas", "libatlas"])
+		gsl_file_names1 += add_windows_fnames1(["libgslcblas", "libgslcblas"])
 
-	mkl_file_names2 = [pref + "mkl_rt" + ext[1]]
-	openblas_file_names2 = [pref + "openblas" + ext[1]]
-	atlas_file_names2 = [pref + "atlas" + ext[1], pref + "tatlas" + ext[1], pref + "satlas" + ext[1]]
-	gsl_file_names2 = [pref + "gslcblas" + ext[1]]
+	process_fnames2 = lambda lst: [pref + nm + ext[1] for nm in lst]
+	mkl_file_names2 = process_fnames2(["mkl_rt"])
+	openblas_file_names2 = process_fnames2(["openblas"])
+	blis_file_names2 = process_fnames2(["blis", "blis-mt"])
+	atlas_file_names2 = process_fnames2(["atlas", "tatlas", "satlas"])
+	gsl_file_names2 = process_fnames2(["gslcblas"])
 
 	incl_mkl_name = ["mkl.h", "mkl_cblas.h", "mkl_blas.h"]
 	incl_openblas_name = ["cblas-openblas.h"]
+	incl_blis_name = ["blis.h"]
 	incl_atlas_name = []
 	incl_gsl_name = ["gsl_cblas.h", "gsl_blas.h"]
 	incl_generic_name = ['cblas.h', 'blas.h']
@@ -92,6 +103,7 @@ def find_blas():
 	## Also have to search where are the headers
 	mkl_include_paths = []
 	openblas_include_paths = []
+	blis_include_paths = []
 	atlas_include_paths = []
 	gsl_include_paths = []
 	system_include_paths = []
@@ -118,6 +130,11 @@ def find_blas():
 		_try_add_from_command("numpy.distutils.system_info.get_info('openblas')['include_dirs']", openblas_include_paths)
 		_try_add_from_command("scipy.__config__.openblas_info['include_dirs']", openblas_include_paths)
 		_try_add_from_command("scipy.__config__.openblas_lapack_info['include_dirs']", openblas_include_paths)
+
+		_try_add_from_command("numpy.distutils.system_info.get_info('blis')['library_dirs']", candidate_paths)
+		_try_add_from_command("scipy.__config__.blis_info['library_dirs']", candidate_paths)
+		_try_add_from_command("numpy.distutils.system_info.get_info('blis')['include_dirs']", blis_include_paths)
+		_try_add_from_command("scipy.__config__.blis_info['include_dirs']", blis_include_paths)
 
 		_try_add_from_command("numpy.distutils.system_info.get_info('atlas')['library_dirs']", candidate_paths)
 		_try_add_from_command("numpy.distutils.system_info.get_info('atlas_blas')['library_dirs']", candidate_paths)
@@ -198,6 +215,16 @@ def find_blas():
 		'/usr/lib64/gsl', '/usr/lib/gsl', '/usr/local/lib64/gsl', '/usr/local/lib/gsl']
 		candidate_paths += ['/usr/lib/x86' + "_" if sys_arch=='64' else '' +sys_arch+'-linux-gnu',
 		'/usr/lib', '/usr/local/lib', '/lib64', '/lib', '/usr/lib64', '/usr/local/lib64', '/opt/local/lib64', '/opt/local/lib']
+		## AMD blis has the version number hard-coded in the folder name without symlink
+		amd_hardcoded_paths = ["/opt/AMD/aocl/"]
+		for pt in amd_hardcoded_paths:
+			if os.path.exists(pt):
+				for d in os.listdir(pt):
+					dd = os.path.join(pt, d)
+					if os.path.isdir(dd):
+						candidate_paths.append(dd)
+						candidate_paths.append(os.path.join(dd, "lib"))
+						blis_include_paths.append(os.path.join(dd, "amd-blis"))
 
 		mkl_include_paths += ['/opt/intel/include', '/opt/intel/mkl/include', '/opt/intel/mkl/include/intel'+sys_arch,
 			'/usr/local/intel/include', '/usr/local/intel/mkl/include', '/usr/local/intel/include/intel'+sys_arch, '/usr/local/intel/mkl/include/intel'+sys_arch]
@@ -271,6 +298,31 @@ def find_blas():
 			paths_pep518.append(os.path.join(clean_path, "lib", "gsl"))
 			paths_pep518.append(os.path.join(clean_path, "lib", "gsl", "lib"))
 			gsl_include_paths.append(os.path.join(clean_path, "lib", "gsl", "include"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "openblas"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "openblas", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "blis"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "blis", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "openblas-openmp"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "openblas-openmp", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "blis-openmp"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "blis-openmp", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "openblas-pthread"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "openblas-pthread", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "blis-pthread"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "blis-pthread", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "openblas-serial"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "openblas-serial", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "blis-serial"))
+			paths_pep518.append(os.path.join(clean_path, "lib", "blis-serial", "lib"))
+			openblas_include_paths.append(os.path.join(clean_path, "lib", "openblas", "include"))
+			openblas_include_paths.append(os.path.join(clean_path, "lib", "openblas-openmp", "include"))
+			openblas_include_paths.append(os.path.join(clean_path, "lib", "openblas-pthread", "include"))
+			openblas_include_paths.append(os.path.join(clean_path, "lib", "openblas-serial", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "lib", "blis", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "lib", "blis-openmp", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "lib", "blis-pthread", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "lib", "blis-serial", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "lib", "amd-blis", "include"))
 			paths_pep518.append(os.path.join(clean_path, "lib", "gslcblas"))
 			paths_pep518.append(os.path.join(clean_path, "lib", "cblas"))
 			paths_pep518.append(os.path.join(clean_path, "lib", "blas"))
@@ -289,6 +341,31 @@ def find_blas():
 			paths_pep518.append(os.path.join(clean_path, "Lib", "gsl"))
 			paths_pep518.append(os.path.join(clean_path, "Lib", "gsl", "lib"))
 			gsl_include_paths.append(os.path.join(clean_path, "Lib", "gsl", "include"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "openblas"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "openblas", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "blis"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "blis", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "openblas-openmp"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "openblas-openmp", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "openblas-pthread"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "openblas-pthread", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "openblas-serial"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "openblas-serial", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "blis-openmp"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "blis-openmp", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "blis-pthread"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "blis-pthread", "lib"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "blis-serial"))
+			paths_pep518.append(os.path.join(clean_path, "Lib", "blis-serial", "lib"))
+			openblas_include_paths.append(os.path.join(clean_path, "Lib", "openblas", "include"))
+			openblas_include_paths.append(os.path.join(clean_path, "Lib", "openblas-openmp", "include"))
+			openblas_include_paths.append(os.path.join(clean_path, "Lib", "openblas-pthread", "include"))
+			openblas_include_paths.append(os.path.join(clean_path, "Lib", "openblas-serial", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "Lib", "blis", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "Lib", "blis-openmp", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "Lib", "blis-pthread", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "Lib", "blis-serial", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "Lib", "amd-blis", "include"))
 			paths_pep518.append(os.path.join(clean_path, "Lib", "gslcblas"))
 			paths_pep518.append(os.path.join(clean_path, "Lib", "cblas"))
 			paths_pep518.append(os.path.join(clean_path, "Lib", "blas"))
@@ -313,6 +390,23 @@ def find_blas():
 			mkl_include_paths.append(os.path.join(clean_path, "include", "mkl", "lib"))
 			mkl_include_paths.append(os.path.join(clean_path, "include", "mkl", "lib", "intel"))
 			mkl_include_paths.append(os.path.join(clean_path, "include", "mkl", "include"))
+			openblas_include_paths.append(os.path.join(clean_path, "include", "openblas"))
+			openblas_include_paths.append(os.path.join(clean_path, "include", "openblas", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "include", "blis"))
+			blis_include_paths.append(os.path.join(clean_path, "include", "blis", "include"))
+			openblas_include_paths.append(os.path.join(clean_path, "include", "openblas-openmp"))
+			openblas_include_paths.append(os.path.join(clean_path, "include", "openblas-openmp", "include"))
+			openblas_include_paths.append(os.path.join(clean_path, "include", "openblas-pthread"))
+			openblas_include_paths.append(os.path.join(clean_path, "include", "openblas-pthread", "include"))
+			openblas_include_paths.append(os.path.join(clean_path, "include", "openblas-serial"))
+			openblas_include_paths.append(os.path.join(clean_path, "include", "openblas-serial", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "include", "blis-openmp"))
+			blis_include_paths.append(os.path.join(clean_path, "include", "blis-openmp", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "include", "blis-pthread"))
+			blis_include_paths.append(os.path.join(clean_path, "include", "blis-pthread", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "include", "blis-serial"))
+			blis_include_paths.append(os.path.join(clean_path, "include", "blis-serial", "include"))
+			blis_include_paths.append(os.path.join(clean_path, "include", "amd-blis"))
 			atlas_include_paths.append(os.path.join(clean_path, "include", "atlas"))
 			atlas_include_paths.append(os.path.join(clean_path, "include", "atlas", "include"))
 			atlas_include_paths.append(os.path.join(clean_path, "include", "libatlas"))
@@ -365,7 +459,13 @@ def find_blas():
 	blas_path = None
 
 	### Start looking for each library in selected paths
-	def search_blas_lib(search_paths, blas_names):
+	def search_blas_lib(search_paths, blas_names, suff=None):
+		if suff is not None:
+			search_paths_new = deepcopy(search_paths)
+			for s in suff:
+				search_paths_new += [pt+s for pt in search_paths]
+			search_paths = search_paths_new
+
 		blas_path = None
 		blas_file = None
 		for blas_name in blas_names:
@@ -388,9 +488,16 @@ def find_blas():
 
 	## OpenBLAS
 	if blas_file is None:
-		blas_path, blas_file = search_blas_lib(search_paths, openblas_file_names1)
+		blas_path, blas_file = search_blas_lib(search_paths, openblas_file_names1, ["openblas", "openblas-openmp", "openblas-pthread", "openblas-serial"])
 		if blas_file is not None:
 			flags_found.append("HAS_OPENBLAS")
+			flags_found.append("HAS_UNDERSCORES")
+
+	## BLIS
+	if blas_file is None:
+		blas_path, blas_file = search_blas_lib(search_paths, blis_file_names1, ["blis", "blis-openmp", "blis-pthread", "blis-serial"])
+		if blas_file is not None:
+			flags_found.append("HAS_BLIS")
 			flags_found.append("HAS_UNDERSCORES")
 
 	## ATLAS
@@ -415,9 +522,16 @@ def find_blas():
 
 	## OpenBLAS
 	if blas_file is None:
-		blas_path, blas_file = search_blas_lib(search_paths, openblas_file_names2)
+		blas_path, blas_file = search_blas_lib(search_paths, openblas_file_names2, ["openblas", "openblas-openmp", "openblas-pthread", "openblas-serial"])
 		if blas_file is not None:
 			flags_found.append("HAS_OPENBLAS")
+			flags_found.append("HAS_UNDERSCORES")
+
+	## BLIS
+	if blas_file is None:
+		blas_path, blas_file = search_blas_lib(search_paths, blis_file_names2, ["blis", "blis-openmp", "blis-pthread", "blis-serial"])
+		if blas_file is not None:
+			flags_found.append("HAS_BLIS")
 			flags_found.append("HAS_UNDERSCORES")
 
 	## ATLAS
@@ -505,7 +619,7 @@ def find_blas():
 				flags_found += temp
 				break
 
-	err_msg = "Could not locate MKL, OpenBLAS, ATLAS or GSL libraries - you'll need to manually modify setup.py to add BLAS path."
+	err_msg = "Could not locate MKL, OpenBLAS, BLIS, ATLAS or GSL libraries - you'll need to manually modify setup.py to add BLAS path."
 	if blas_file is None:
 		try:
 			import numpy as np
@@ -578,6 +692,10 @@ def find_blas():
 		search_paths = get_inc_paths(blas_path, openblas_include_paths, system_include_paths)
 		incl_path, incl_file = search_incl_kwds(search_paths, incl_openblas_name + incl_generic_name, ["openblas"])
 
+	elif 'HAS_BLIS' in flags_found:
+		search_paths = get_inc_paths(blas_path, openblas_include_paths, system_include_paths)
+		incl_path, incl_file = search_incl_kwds(search_paths, incl_openblas_name + incl_generic_name, ["blis", "amd-blis"])
+
 	elif 'HAS_ATLAS' in flags_found:
 		search_paths = get_inc_paths(blas_path, atlas_include_paths, system_include_paths)
 		incl_path, incl_file = search_incl_kwds(search_paths, incl_atlas_name + incl_generic_name, ["atlas", "ATLAS"])
@@ -589,7 +707,7 @@ def find_blas():
 	else:
 		flags_found.append('UNKNWON_BLAS')
 		search_paths = get_inc_paths(blas_path, [], system_include_paths)
-		all_kwds = ["MKL", "openblas", "atlas", "ATLAS"]
+		all_kwds = ["MKL", "openblas", "blis", "atlas", "ATLAS"]
 		if 'NO_CBLAS' not in flags_found:
 			all_kwds += ["GSL_CBLAS", "cblas", "CBLAS"]
 		all_kwds += ["ddot", "DDOT"]
@@ -623,6 +741,8 @@ def _find_symbols(pt, fname):
 			symtab = elffile.get_section_by_name('.symtab')
 			if symtab.get_symbol_by_name('openblas_get_config') is not None:
 				return True, ["HAS_OPENBLAS", "HAS_UNDERSCORES"]
+			if symtab.get_symbol_by_name('bli_axpyd') is not None:
+				return True, ["HAS_BLIS", "HAS_UNDERSCORES"]
 			if symtab.get_symbol_by_name('mkl_dcsrgemv') is not None:
 				return True, ["HAS_MKL"]
 			if symtab.get_symbol_by_name('ddot_') is not None:
@@ -647,6 +767,8 @@ def _find_symbols(pt, fname):
 			for s in symbols:
 				if bool(re.search("openblas", s)):
 					return True, ["HAS_OPENBLAS", "HAS_UNDERSCORES"]
+				if bool(re.search("bli_axpyd", s)):
+					return True, ["HAS_BLIS", "HAS_UNDERSCORES"]
 				if bool(re.search("mkl_dcsrgemv", s)):
 					return True, ["HAS_MKL"]
 				if bool(re.search(r"ddot_[^a-z]", s)):

@@ -9,8 +9,9 @@ This package eases the usage of BLAS functions in wrapped code. It can find eith
 Supports the following BLAS implementations:
 * `MKL` (free of charge but not open-source)
 * `OpenBLAS` (open-source)
+* `BLIS` (open-source, puts LAPACK in a separate library), including AMD's distribution.
 * `ATLAS` (open-source, must be built from source as it makes system-specific optimizations)
-* `GSL` (open-source and copyleft, not very optimized)
+* `GSL` (open-source and copyleft, not very optimized and not recommended to use)
 
 All of which conform to the CBLAS API (i.e. functions named like `cblas_ddot`, `cblas_sgemm`, etc.).
 
@@ -124,6 +125,7 @@ setup(
 The `find_blas` function can return the following flags (if using `build_ext_with_blas`, these will be available by the preprocessor in C files as if doing e.g. `#define DEFINED_THIS_FLAG`):
 * `HAS_MKL` : library found was Intel's MKL.
 * `HAS_OPENBLAS` : library found was OpenBLAS.
+* `HAS_BLIS` : library found was BLIS.
 * `HAS_ATLAS` : library found was ATLAS.
 * `HAS_GSL` : library found was the GNU Scientific Library.
 * `UNKNWON_BLAS` : specific implementation cannot be determined.
