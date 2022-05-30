@@ -6,12 +6,12 @@ import platform as platform_module
 try:
 	import numpy as np
 	import numpy.distutils.system_info
-except:
+except ImportError:
 	pass
 try:
 	import scipy
 	import scipy.linalg
-except:
+except ImportError:
 	pass
 
 ### TODO: maybe add a 'find_lapack' equivalent
@@ -262,7 +262,7 @@ def find_blas():
 			## https://stackoverflow.com/questions/41630224/python-does-not-find-system32
 			is_wow64 = (platform.architecture()[0] == '32bit' and 'ProgramFiles(x86)' in os.environ)
 			candidate_paths += os.path.join(os.environ['SystemRoot'], 'SysNative' if is_wow64 else 'System32')
-		except:
+		except Exception:
 			pass
 
 		## Try to add visual studio headers
@@ -283,7 +283,7 @@ def find_blas():
 							h_fold = os.path.join(i_fold, vr, "ucrt")
 							if os.path.exists(h_fold):
 								system_include_paths += h_fold
-		except:
+		except Exception:
 			pass
 
 	## Potential cases of PEP518 environments
@@ -425,11 +425,11 @@ def find_blas():
 			try:
 				with redirect_stdout(pip_outp):
 					pip.main(['show', '-f', 'mkl'])
-			except:
+			except Exception:
 				from pip._internal import main as pip_main
 				with redirect_stdout(pip_outp):
 					pip_main(['show', '-f', 'mkl'])
-		except:
+		except Exception:
 			with redirect_stdout(pip_outp):
 				os.system("pip show -f mkl")
 
@@ -448,7 +448,7 @@ def find_blas():
 					os.path.join(files_root, re.sub(r"^\s*(.*)[/\\]+[lib]*mkl_rt\.[solibdyaSOLIBDYA]+$", r"\1", ln))
 				)
 
-	except:
+	except Exception:
 		pass
 
 	## Discard duplicated paths, but keep the order
@@ -638,7 +638,7 @@ def find_blas():
 						flags_found += found_syms[1]
 
 			warnings.warn("No BLAS library found - taking NumPy's linalg's file as library.")
-		except:
+		except Exception:
 			try:
 				import scipy.linalg
 				blas_from_scipy = re.sub(r"\\", "/", scipy.linalg.cython_blas.__file__)
@@ -654,7 +654,7 @@ def find_blas():
 
 				warnings.warn("No BLAS library found - taking SciPy's linalg.cython_blas file as library.")
 
-			except:
+			except Exception:
 				raise ValueError(err_msg)
 
 	### Now lookup the include path
@@ -730,7 +730,7 @@ def _deduplicate_paths(candidate_paths):
 def _try_add_from_command(str_expr, candidate_paths):
 	try:
 		exec("candidate_paths += " + str_expr)
-	except:
+	except Exception:
 		pass
 
 def _find_symbols(pt, fname):
@@ -756,7 +756,7 @@ def _find_symbols(pt, fname):
 				return True, ["NO_CBLAS"]
 		return True, None
 
-	except:
+	except Exception:
 		try:
 			import subprocess
 			symbols = subprocess.check_output(['readelf', '-s', os.path.join(pt, fname)])
@@ -788,5 +788,5 @@ def _find_symbols(pt, fname):
 				return True, flags_found
 			else:
 				return True, None
-		except:
+		except Exception:
 			return False, None

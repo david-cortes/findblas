@@ -58,7 +58,7 @@ class build_ext_with_blas( build_ext ):
             candidate_paths = [sys.prefix]
             try:
                 candidate_paths.append(os.environ['PYTHONPATH'])
-            except:
+            except Exception:
                 pass
             if platform[:3] == "win":
                 candidate_paths += os.environ['PATH'].split(";")
