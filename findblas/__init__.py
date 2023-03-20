@@ -65,7 +65,7 @@ def find_blas():
 	## Possible file names for each library in different OSes
 	## Tries to look for dynamic-link libraries at first, but in MSVC, linking to the .dll's will fail
 	process_fnames1 = lambda lst: [pref + nm + ext[0] for nm in lst]
-	mkl_file_names1 = process_fnames1(["mkl_rt"])
+	mkl_file_names1 = process_fnames1(["mkl_rt", "mkl_rt.1", "mkl_rt.2"])
 	openblas_file_names1 = process_fnames1(["openblas"])
 	blis_file_names1 = process_fnames1(["blis", "blis-mt"])
 	atlas_file_names1 = process_fnames1(["atlas", "tatlas", "satlas"])
@@ -79,7 +79,7 @@ def find_blas():
 		gsl_file_names1 += add_windows_fnames1(["libgslcblas", "libgslcblas"])
 
 	process_fnames2 = lambda lst: [pref + nm + ext[1] for nm in lst]
-	mkl_file_names2 = process_fnames2(["mkl_rt"])
+	mkl_file_names2 = process_fnames2(["mkl_rt", "mkl_rt.1", "mkl_rt.2"])
 	openblas_file_names2 = process_fnames2(["openblas"])
 	blis_file_names2 = process_fnames2(["blis", "blis-mt"])
 	atlas_file_names2 = process_fnames2(["atlas", "tatlas", "satlas"])
@@ -443,9 +443,9 @@ def find_blas():
 
 		for ln in pip_outp:
 			## exts: .o, .so, .a, .lib, .dll, .dynlib
-			if bool(re.search(r"mkl_rt\.[solibdyaSOLIBDYA]+$", ln)):
+			if bool(re.search(r"mkl_rt(\.\d)?\.[solibdyaSOLIBDYA]+$", ln)):
 				candidate_paths.append(
-					os.path.join(files_root, re.sub(r"^\s*(.*)[/\\]+[lib]*mkl_rt\.[solibdyaSOLIBDYA]+$", r"\1", ln))
+					os.path.join(files_root, re.sub(r"^\s*(.*)[/\\]+[lib]*mkl_rt(\.\d)?\.[solibdyaSOLIBDYA]+$", r"\1", ln))
 				)
 
 	except Exception:
