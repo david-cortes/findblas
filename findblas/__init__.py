@@ -16,7 +16,7 @@ except ImportError:
 
 ### TODO: maybe add a 'find_lapack' equivalent
 
-def find_blas():
+def find_blas(allow_unidentified_blas = True):
 	"""
 	Find installed BLAS library
 
@@ -29,6 +29,23 @@ def find_blas():
 	library's file name is generic (e.g. 'libblas.so').
 
 	Does not have any external dependencies, but the following are recommended: numpy, scipy, pyelftools, cython.
+
+	Parameters
+	----------
+	allow_unidentified_blas : bool
+		Whether to allow outputting a BLAS library which cannot be identified as being from one of the supported
+		vendors (MKL, OpenBLAS, BLIS, ATLAS, GSL) and on which no standard BLAS function symbols have been found
+		through ELF inspectors.
+
+		Typically, SciPy's shared object files will be considered as candidates to output, and they tend to contain
+		all of the 'reference' BLAS symbols as part of their exported symbols on linux, but on windows systems, the
+		DLLs from SciPy tend not to export BLAS symbols and hence are not linkable for python extensions that require
+		them. Note that this library will only inspect ELF formats, which windows DLLs do not conform to.
+
+		If passing 'True', and an unrecognized library has been identified as a candidate, it will ask the user
+		through a command line prompt about whether to take the library or not.
+
+		If passing 'False', will not output an unrecognized and uninspected library, and there will be no user prompt.
 
 	Returns
 	-------
@@ -564,7 +581,7 @@ def find_blas():
 						flags_found += found_syms[1]
 
 	### Try regex matching
-	def check_is_blas(pt, fname):
+	def check_is_blas(pt, fname, allow_unidentified_blas):
 		ask_user = True
 		is_blas = False
 		flags_found = []
@@ -577,7 +594,7 @@ def find_blas():
 				ask_user = False
 
 
-		if ask_user:
+		if ask_user and allow_unidentified_blas:
 			## if not, ask the user explicitly
 			txt = "Found file with name matching 'blas'\n"
 			txt += pt + fname + "\n"
@@ -612,7 +629,7 @@ def find_blas():
 		candidate_files = candidate_files_dyna + candidate_files_stat
 		candidate_paths = candidate_paths_dyna + candidate_paths_stat
 		for f in range(len(candidate_files)):
-			is_blas, temp = check_is_blas(candidate_paths[f], candidate_files[f])
+			is_blas, temp = check_is_blas(candidate_paths[f], candidate_files[f], allow_unidentified_blas)
 			if is_blas:
 				blas_file = candidate_files[f]
 				blas_path = candidate_paths[f]
