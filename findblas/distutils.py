@@ -3,8 +3,9 @@ import findblas, re, os, sys, warnings
 from sys import platform
 import platform as platform_module
 
+
 ## https://stackoverflow.com/questions/52905458/link-cython-wrapped-c-functions-against-blas-from-numpy
-class build_ext_with_blas( build_ext ):
+class build_ext_with_blas(build_ext):
     """
     'build_ext' module built on top of 'Cython.Distutils.build_ext'.
 
@@ -13,11 +14,11 @@ class build_ext_with_blas( build_ext ):
 
     def build_extensions(self):
         ## Lookup blas files and headers first
-        nocblas_err_msg  = "\n\nNo CBLAS library found - please install one with e.g. "
+        nocblas_err_msg = "\n\nNo CBLAS library found - please install one with e.g. "
         nocblas_err_msg += "'sudo apt-get install libopenblas-dev' (or 'intel-mkl-full') (Debian/Ubuntu)"
         nocblas_err_msg += ", 'conda install mkl-devel' (Linux / Mac)"
         nocblas_err_msg += ", or 'pip install mkl-devel' (Windows / Linux / Mac)."
-        from_rtd = os.environ.get('READTHEDOCS') == 'True'
+        from_rtd = os.environ.get("READTHEDOCS") == "True"
         if not from_rtd:
             blas_path, blas_file, incl_path, incl_file, flags = findblas.find_blas()
             if (blas_file is None) or (blas_path is None):
@@ -31,11 +32,15 @@ class build_ext_with_blas( build_ext ):
                 txt += "\nBut .lib files are missing! Please reinstall it (e.g. 'pip install mkl-devel')."
                 raise ValueError(txt)
             else:
-            	if platform[:3] != "win":
-                	print("Installation: Using BLAS library found in:\n" + os.path.join(blas_path, blas_file) + "\n\n")
+                if platform[:3] != "win":
+                    print(
+                        "Installation: Using BLAS library found in:\n"
+                        + os.path.join(blas_path, blas_file)
+                        + "\n\n"
+                    )
         else:
-            flags = ['_FOR_RTD']
-            blas_path, blas_file, incl_path, incl_file = [None]*4
+            flags = ["_FOR_RTD"]
+            blas_path, blas_file, incl_path, incl_file = [None] * 4
 
         ## if no CBLAS and no functions are present, there will be no prototypes for the cblas API
         if "NO_CBLAS" in flags:
@@ -57,31 +62,51 @@ class build_ext_with_blas( build_ext ):
         else:
             candidate_paths = [sys.prefix]
             try:
-                candidate_paths.append(os.environ['PYTHONPATH'])
+                candidate_paths.append(os.environ["PYTHONPATH"])
             except Exception:
                 pass
             if platform[:3] == "win":
-                candidate_paths += os.environ['PATH'].split(";")
+                candidate_paths += os.environ["PATH"].split(";")
             else:
-                candidate_paths += os.environ['PATH'].split(":")
+                candidate_paths += os.environ["PATH"].split(":")
 
             for path in candidate_paths:
                 if bool(re.search(r"[Oo]verlay", path)):
                     clean_path = re.sub(r"^(.*[Oo]verlay).*$", r"\1", path)
-                    if os.path.exists( os.path.join(clean_path, "include", "findblas.h") ):
+                    if os.path.exists(
+                        os.path.join(clean_path, "include", "findblas.h")
+                    ):
                         finblas_head_fold = os.path.join(clean_path, "include")
                         break
-                    elif os.path.exists( os.path.join(clean_path, "findblas.h") ):
+                    elif os.path.exists(os.path.join(clean_path, "findblas.h")):
                         finblas_head_fold = clean_path
                         break
-                    elif os.path.exists( os.path.join(clean_path, "site-packages", "findblas", "findblas.h") ):
-                        finblas_head_fold = os.path.join(clean_path, "site-packages", "findblas")
+                    elif os.path.exists(
+                        os.path.join(
+                            clean_path, "site-packages", "findblas", "findblas.h"
+                        )
+                    ):
+                        finblas_head_fold = os.path.join(
+                            clean_path, "site-packages", "findblas"
+                        )
                         break
-                    elif os.path.exists( os.path.join(clean_path, "Lib", "site-packages", "findblas", "findblas.h") ):
-                        finblas_head_fold = os.path.join(clean_path, "Lib", "site-packages", "findblas")
+                    elif os.path.exists(
+                        os.path.join(
+                            clean_path, "Lib", "site-packages", "findblas", "findblas.h"
+                        )
+                    ):
+                        finblas_head_fold = os.path.join(
+                            clean_path, "Lib", "site-packages", "findblas"
+                        )
                         break
-                    elif os.path.exists( os.path.join(clean_path, "lib", "site-packages", "findblas", "findblas.h") ):
-                        finblas_head_fold = os.path.join(clean_path, "lib", "site-packages", "findblas")
+                    elif os.path.exists(
+                        os.path.join(
+                            clean_path, "lib", "site-packages", "findblas", "findblas.h"
+                        )
+                    ):
+                        finblas_head_fold = os.path.join(
+                            clean_path, "lib", "site-packages", "findblas"
+                        )
                         break
 
             ## if still not found, try to get it from pip itself
@@ -89,9 +114,10 @@ class build_ext_with_blas( build_ext ):
                 import pip
                 import io
                 from contextlib import redirect_stdout
+
                 pip_outp = io.StringIO()
                 with redirect_stdout(pip_outp):
-                    pip.main(['show', '-f', 'findblas'])
+                    pip.main(["show", "-f", "findblas"])
                 pip_outp = pip_outp.getvalue()
                 pip_outp = pip_outp.split("\n")
                 for ln in pip_outp:
@@ -100,17 +126,25 @@ class build_ext_with_blas( build_ext ):
                         break
                 for ln in pip_outp:
                     if bool(re.search(r"findblas\.h$", ln)):
-                        finblas_head_fold = os.path.join(files_root, re.sub(r"^(.*)[/\\]*findblas\.h$", r"\1", ln))
+                        finblas_head_fold = os.path.join(
+                            files_root, re.sub(r"^(.*)[/\\]*findblas\.h$", r"\1", ln)
+                        )
                         break
 
                 ## if the header file doesn't exist, shall raise en error
                 else:
-                    raise ValueError("Could not find header file from 'findblas' - please try reinstalling with 'pip install --force findblas'")
+                    raise ValueError(
+                        "Could not find header file from 'findblas' - please try reinstalling with 'pip install --force findblas'"
+                    )
 
         ## Pass extra flags for the header
-        warning_msg = "No CBLAS headers were found - function propotypes might be unreliable."
+        warning_msg = (
+            "No CBLAS headers were found - function propotypes might be unreliable."
+        )
         mkl_err_msg = "Missing MKL CBLAS headers, please reinstall with e.g. 'conda install mkl-include' or 'pip install mkl-include'."
-        gsl_err_msg = "Missing GSL CBLAS headers, please reinstall with e.g. 'conda install gsl'."
+        gsl_err_msg = (
+            "Missing GSL CBLAS headers, please reinstall with e.g. 'conda install gsl'."
+        )
         if incl_file == "mkl_cblas.h":
             flags.append("MKL_OWN_INCL_CBLAS")
         elif incl_file == "mkl_blas.h":
@@ -135,9 +169,9 @@ class build_ext_with_blas( build_ext ):
         ## Now add them to the extension
         for e in self.extensions:
             if not from_rtd:
-                if self.compiler.compiler_type == 'msvc': # visual studio
+                if self.compiler.compiler_type == "msvc":  # visual studio
                     e.extra_link_args += [os.path.join(blas_path, blas_file)]
-                else: # everything else which cares about following standards
+                else:  # everything else which cares about following standards
                     if platform[:3] != "dar":
                         e.extra_link_args += ["-L" + blas_path, "-l:" + blas_file]
                     else:
@@ -145,7 +179,7 @@ class build_ext_with_blas( build_ext ):
                         blas_shortened = re.sub(r"\.[A-Za-z]+$", "", blas_shortened)
                         e.extra_link_args += ["-L" + blas_path, "-l" + blas_shortened]
                     if bool(re.search(r"\.a$", blas_file)):
-                        if (bool(re.search(r"gsl", blas_file))):
+                        if bool(re.search(r"gsl", blas_file)):
                             e.extra_link_args += ["-lgslcblas"]
                         else:
                             e.extra_link_args += ["-lcblas", "-lblas"]
