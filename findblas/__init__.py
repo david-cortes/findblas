@@ -83,11 +83,11 @@ def find_blas(allow_unidentified_blas=True):
 
     ## Possible file names for each library in different OSes
     ## Tries to look for dynamic-link libraries at first, but in MSVC, linking to the .dll's will fail
-    mkl_file_names1 = process_fnames1(["mkl_rt", "mkl_rt.1", "mkl_rt.2"], pref, ext[0], platform)
-    openblas_file_names1 = process_fnames1(["openblas"], pref, ext[0], platform)
-    blis_file_names1 = process_fnames1(["blis", "blis-mt"], pref, ext[0], platform)
-    atlas_file_names1 = process_fnames1(["atlas", "tatlas", "satlas"], pref, ext[0], platform)
-    gsl_file_names1 = process_fnames1(["gslcblas"], pref, ext[0], platform)
+    mkl_file_names1 = process_fnames1(["mkl_rt", "mkl_rt.2", "mkl_rt.1"], pref, ext[0])
+    openblas_file_names1 = process_fnames1(["openblas"], pref, ext[0])
+    blis_file_names1 = process_fnames1(["blis", "blis-mt"], pref, ext[0])
+    atlas_file_names1 = process_fnames1(["atlas", "tatlas", "satlas"], pref, ext[0])
+    gsl_file_names1 = process_fnames1(["gslcblas"], pref, ext[0])
 
     if platform[:3] == "win":
         add_windows_fnames1 = lambda lst: [nm + ext[2] for nm in lst]
@@ -96,11 +96,11 @@ def find_blas(allow_unidentified_blas=True):
         atlas_file_names1 += add_windows_fnames1(["libatlas", "libatlas"])
         gsl_file_names1 += add_windows_fnames1(["libgslcblas", "libgslcblas"])
 
-    mkl_file_names2 = process_fnames1(["mkl_rt", "mkl_rt.1", "mkl_rt.2"], pref, ext[1], platform)
-    openblas_file_names2 = process_fnames1(["openblas"], pref, ext[1], platform)
-    blis_file_names2 = process_fnames1(["blis", "blis-mt"], pref, ext[1], platform)
-    atlas_file_names2 = process_fnames1(["atlas", "tatlas", "satlas"], pref, ext[1], platform)
-    gsl_file_names2 = process_fnames1(["gslcblas"], pref, ext[1], platform)
+    mkl_file_names2 = process_fnames1(["mkl_rt", "mkl_rt.2", "mkl_rt.1"], pref, ext[1])
+    openblas_file_names2 = process_fnames1(["openblas"], pref, ext[1])
+    blis_file_names2 = process_fnames1(["blis", "blis-mt"], pref, ext[1])
+    atlas_file_names2 = process_fnames1(["atlas", "tatlas", "satlas"], pref, ext[1])
+    gsl_file_names2 = process_fnames1(["gslcblas"], pref, ext[1])
 
     incl_mkl_name = ["mkl.h", "mkl_cblas.h", "mkl_blas.h"]
     incl_openblas_name = ["cblas-openblas.h"]
@@ -786,7 +786,7 @@ def find_blas(allow_unidentified_blas=True):
                     os.path.join(
                         files_root,
                         re.sub(
-                            r"^\s*(.*)[\/\\]+[lib]*mkl_rt(\.\d)?\.[solibdyaSOLIBDYA]+\.\d",
+                            r"^\s*(.*)[\/\\]+[lib]*mkl_rt(\.\d)?\.[solibdyaSOLIBDYA]+(\.\d)?",
                             r"\1",
                             ln,
                         ),
@@ -1133,17 +1133,14 @@ def _deduplicate_paths(candidate_paths):
     return search_paths
 
 
-def process_fnames1(lst, pref, ext, platform):
+def process_fnames1(lst, pref, ext):
     out = []
     for nm in lst:
         tmp = nm.split(".")
-        if len(tmp) == 2:
-            if platform[:3] == "win":
-                out.append(pref + nm + ext)
-            elif platform[:3] == "dar":
-                out.append(pref + nm + ext)
-            else:
-                out.append(pref + tmp[0] + ext + "." + tmp[1])
+        # Note: on linux, MKL can be named as 'libmkl_rt.so.2',
+        # while on windows and mac will be named as e.g. 'mkl_rt.1.dll'
+        if (len(tmp) == 2) and (platform[:3] not in ("win", "dar")):
+            out.append(pref + tmp[0] + ext + "." + tmp[1])
         else:
             out.append(pref + nm + ext)
     return out
