@@ -96,11 +96,11 @@ def find_blas(allow_unidentified_blas=True):
         atlas_file_names1 += add_windows_fnames1(["libatlas", "libatlas"])
         gsl_file_names1 += add_windows_fnames1(["libgslcblas", "libgslcblas"])
 
-    mkl_file_names2 = process_fnames1(["mkl_rt", "mkl_rt.1", "mkl_rt.2"], pref, ext[1])
-    openblas_file_names2 = process_fnames1(["openblas"], pref, ext[1])
-    blis_file_names2 = process_fnames1(["blis", "blis-mt"], pref, ext[1])
-    atlas_file_names2 = process_fnames1(["atlas", "tatlas", "satlas"], pref, ext[1])
-    gsl_file_names2 = process_fnames1(["gslcblas"], pref, ext[1])
+    mkl_file_names2 = process_fnames1(["mkl_rt", "mkl_rt.1", "mkl_rt.2"], pref, ext[1], platform)
+    openblas_file_names2 = process_fnames1(["openblas"], pref, ext[1], platform)
+    blis_file_names2 = process_fnames1(["blis", "blis-mt"], pref, ext[1], platform)
+    atlas_file_names2 = process_fnames1(["atlas", "tatlas", "satlas"], pref, ext[1], platform)
+    gsl_file_names2 = process_fnames1(["gslcblas"], pref, ext[1], platform)
 
     incl_mkl_name = ["mkl.h", "mkl_cblas.h", "mkl_blas.h"]
     incl_openblas_name = ["cblas-openblas.h"]
