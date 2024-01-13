@@ -83,11 +83,11 @@ def find_blas(allow_unidentified_blas=True):
 
     ## Possible file names for each library in different OSes
     ## Tries to look for dynamic-link libraries at first, but in MSVC, linking to the .dll's will fail
-    mkl_file_names1 = process_fnames1(["mkl_rt", "mkl_rt.1", "mkl_rt.2"], pref, ext[0])
-    openblas_file_names1 = process_fnames1(["openblas"], pref, ext[0])
-    blis_file_names1 = process_fnames1(["blis", "blis-mt"], pref, ext[0])
-    atlas_file_names1 = process_fnames1(["atlas", "tatlas", "satlas"], pref, ext[0])
-    gsl_file_names1 = process_fnames1(["gslcblas"], pref, ext[0])
+    mkl_file_names1 = process_fnames1(["mkl_rt", "mkl_rt.1", "mkl_rt.2"], pref, ext[0], platform)
+    openblas_file_names1 = process_fnames1(["openblas"], pref, ext[0], platform)
+    blis_file_names1 = process_fnames1(["blis", "blis-mt"], pref, ext[0], platform)
+    atlas_file_names1 = process_fnames1(["atlas", "tatlas", "satlas"], pref, ext[0], platform)
+    gsl_file_names1 = process_fnames1(["gslcblas"], pref, ext[0], platform)
 
     if platform[:3] == "win":
         add_windows_fnames1 = lambda lst: [nm + ext[2] for nm in lst]
@@ -1133,12 +1133,17 @@ def _deduplicate_paths(candidate_paths):
     return search_paths
 
 
-def process_fnames1(lst, pref, ext):
+def process_fnames1(lst, pref, ext, platform):
     out = []
     for nm in lst:
         tmp = nm.split(".")
         if len(tmp) == 2:
-            out.append(pref + tmp[0] + ext + "." + tmp[1])
+            if platform[:3] == "win":
+                out.append(pref + nm + ext)
+            elif platform[:3] == "dar":
+                out.append(pref + nm + ext)
+            else:
+                out.append(pref + tmp[0] + ext + "." + tmp[1])
         else:
             out.append(pref + nm + ext)
     return out
