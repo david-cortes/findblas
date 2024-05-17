@@ -372,10 +372,14 @@ def find_blas(allow_unidentified_blas=True):
             "/opt/intel/lib/intel64",
             "/opt/intel/mkl/lib",
             "/opt/intel/mkl/lib/intel" + sys_arch,
+            "/opt/intel/oneapi/mkl/latest/lib",
+            "/opt/intel/oneapi/mkl/latest/lib" + sys_arch,
             "/usr/local/intel/lib",
             "/usr/local/intel/mkl/lib",
             "/usr/local/intel/lib/intel" + sys_arch,
             "/usr/local/intel/mkl/lib/intel" + sys_arch,
+            "/usr/local/intel/oneapi/mkl/latest/lib",
+            "/usr/local/intel/oneapi/mkl/latest/lib/intel" + sys_arch,
             "/usr/lib64/atlas",
             "/usr/lib/atlas",
             "/usr/local/lib64/atlas",
@@ -386,7 +390,7 @@ def find_blas(allow_unidentified_blas=True):
             "/usr/local/lib/gsl",
         ]
         candidate_paths += [
-            "/usr/lib/x86" + "_" if sys_arch == "64" else "" + sys_arch + "-linux-gnu",
+            "/usr/lib/x86" + ("_" if sys_arch == "64" else "") + sys_arch + "-linux-gnu",
             "/usr/lib",
             "/usr/local/lib",
             "/lib64",
@@ -415,6 +419,10 @@ def find_blas(allow_unidentified_blas=True):
             "/usr/local/intel/mkl/include",
             "/usr/local/intel/include/intel" + sys_arch,
             "/usr/local/intel/mkl/include/intel" + sys_arch,
+            "/opt/intel/oneapi/mkl/latest/include",
+            "/opt/intel/oneapi/mkl/latest/include/oneapi",
+            "/usr/local/intel/oneapi/mkl/latest/include",
+            "/usr/local/intel/oneapi/mkl/latest/include/intel" + sys_arch,
         ]
         ## openblas is the only good citizen that plays by the rules
         atlas_include_paths += [

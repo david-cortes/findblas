@@ -6,7 +6,7 @@ except ImportError:
 setup(
     name="findblas",
     packages=["findblas"],
-    version="0.1.23",
+    version="0.1.24-1",
     author="David Cortes",
     url="https://github.com/david-cortes/findblas",
     classifiers=[],
