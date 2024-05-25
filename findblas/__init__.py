@@ -84,7 +84,7 @@ def find_blas(allow_unidentified_blas=True):
     ## Possible file names for each library in different OSes
     ## Tries to look for dynamic-link libraries at first, but in MSVC, linking to the .dll's will fail
     mkl_file_names1 = process_fnames1(["mkl_rt", "mkl_rt.2", "mkl_rt.1"], pref, ext[0])
-    openblas_file_names1 = process_fnames1(["openblas"], pref, ext[0])
+    openblas_file_names1 = process_fnames1(["openblas", "openblas64_"], pref, ext[0])
     blis_file_names1 = process_fnames1(["blis", "blis-mt"], pref, ext[0])
     atlas_file_names1 = process_fnames1(["atlas", "tatlas", "satlas"], pref, ext[0])
     gsl_file_names1 = process_fnames1(["gslcblas"], pref, ext[0])
