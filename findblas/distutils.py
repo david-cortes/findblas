@@ -20,7 +20,7 @@ class build_ext_with_blas(build_ext):
         nocblas_err_msg += ", or 'pip install mkl-devel' (Windows / Linux / Mac)."
         from_rtd = os.environ.get("READTHEDOCS") == "True"
         if not from_rtd:
-            blas_path, blas_file, incl_path, incl_file, flags = findblas.find_blas()
+            blas_path, blas_file, incl_path, incl_file, flags = findblas.find_blas(allow_unidentified_blas=False)
             if (blas_file is None) or (blas_path is None):
                 raise ValueError(nocblas_err_msg)
             elif blas_file == "mkl_rt.dll":
