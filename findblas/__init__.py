@@ -84,7 +84,7 @@ def find_blas(allow_unidentified_blas=True):
     ## Possible file names for each library in different OSes
     ## Tries to look for dynamic-link libraries at first, but in MSVC, linking to the .dll's will fail
     mkl_file_names1 = process_fnames1(["mkl_rt", "mkl_rt.2", "mkl_rt.1"], pref, ext[0])
-    openblas_file_names1 = process_fnames1(["openblas", "openblas64_"], pref, ext[0])
+    openblas_file_names1 = process_fnames1(["openblas", "openblas64", "openblas64_"], pref, ext[0])
     blis_file_names1 = process_fnames1(["blis", "blis-mt"], pref, ext[0])
     atlas_file_names1 = process_fnames1(["atlas", "tatlas", "satlas"], pref, ext[0])
     gsl_file_names1 = process_fnames1(["gslcblas"], pref, ext[0])
@@ -444,6 +444,44 @@ def find_blas(allow_unidentified_blas=True):
             "/usr/local/include",
             "/opt/local/include",
         ]
+
+        if platform[:3] == "dar":
+            candidate_paths.append("/System/Library/Frameworks/Accelerate.framework/Versions/Current/Frameworks/vecLib.framework")
+
+            for blas_lib in ["openblas", "blis", "atlas", "blas"]:
+                path_homebrew_blas = f"/opt/homebrew/opt/{blas_lib}"
+                if os.path.exists(path_homebrew_blas):
+                    if os.path.exists(os.path.join(path_homebrew_blas, "lib")):
+                        candidate_paths.append(os.path.join(path_homebrew_blas, "lib"))
+                    include_path_this = os.path.join(path_homebrew_blas, "include")
+                    if os.path.exists(include_path_this):
+                        if blas_lib == "openblas":
+                            openblas_include_paths.append(include_path_this)
+                        elif blas_lib == "blis":
+                            blis_include_paths.append(include_path_this)
+                        elif blas_lib == "atlas":
+                            atlas_include_paths.append(include_path_this)
+                        else:
+                            system_include_paths.append(include_path_this)
+
+                path_homebrew_blas_versioned = f"/opt/homebrew/Cellar/{blas_lib}"
+                if os.path.exists(path_homebrew_blas_versioned):
+                    for sub_pt in os.listdir(path_homebrew_blas_versioned):
+                        candidate_hb_openblas = os.path.join(path_homebrew_blas_versioned, sub_pt)
+                        if os.path.isdir(candidate_hb_openblas):
+                            if os.path.exists(os.path.join(candidate_hb_openblas, "lib")):
+                                candidate_paths.append(os.path.join(candidate_hb_openblas, "lib"))
+                            include_path_this = os.path.join(path_homebrew_blas, "include")
+                            if os.path.exists(include_path_this):
+                                if blas_file == "openblas":
+                                    openblas_include_paths.append(include_path_this)
+                                elif blas_lib == "blis":
+                                    blis_include_paths.append(include_path_this)
+                                elif blas_lib == "atlas":
+                                    atlas_include_paths.append(include_path_this)
+                                else:
+                                    system_include_paths.append(include_path_this)
+
     else:
         ## Try to lookup default MKL installation
         intel_folder = os.path.join(
@@ -928,7 +966,7 @@ def find_blas(allow_unidentified_blas=True):
                     flags_found += found_syms[1]
         else:
             blas_path, blas_file = search_blas_lib(
-                search_paths, [pref + "blas" + e for e in ext]
+                search_paths, [pref + "blas" + e for e in ext] + [pref + "BLAS" + e for e in ext]
             )
             if blas_file is not None:
                 if platform[:3] != "win":
