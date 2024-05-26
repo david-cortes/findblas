@@ -18,7 +18,7 @@ except ImportError:
 ### TODO: maybe add a 'find_lapack' equivalent
 
 
-def find_blas(allow_unidentified_blas=True):
+def find_blas(allow_unidentified_blas=True, allow_pep518_paths=True):
     """
     Find installed BLAS library
 
@@ -48,6 +48,11 @@ def find_blas(allow_unidentified_blas=True):
         through a command line prompt about whether to take the library or not.
 
         If passing 'False', will not output an unrecognized and uninspected library, and there will be no user prompt.
+    allow_pep518_paths : bool
+        Whether to also look in temporary paths from a PEP518 build-time environment. Note that these paths will only
+        be available during the setup of a given package, but will be removed afterwards, so having them as a hard-coded
+        path will not be useful for dynamic linking, but can still be useful for other purposes such as static linking
+        or just generically linking against symbols that are guaranteed to be loaded beforehand.
 
     Returns
     -------
@@ -575,225 +580,226 @@ def find_blas(allow_unidentified_blas=True):
 
     ## Potential cases of PEP518 environments
     paths_pep518 = []
-    for path in candidate_paths:
-        if bool(re.search(r"[Oo]verlay", path)):
-            clean_path = re.sub(r"^(.*[Oo]verlay).*$", r"\1", path)
+    if allow_pep518_paths:
+        for path in candidate_paths:
+            if bool(re.search(r"[Oo]verlay", path)):
+                clean_path = re.sub(r"^(.*[Oo]verlay).*$", r"\1", path)
 
-            paths_pep518.append(clean_path)
+                paths_pep518.append(clean_path)
 
-            paths_pep518.append(os.path.join(clean_path, "lib"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "gsl"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "gsl", "lib"))
-            gsl_include_paths.append(os.path.join(clean_path, "lib", "gsl", "include"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "openblas"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "openblas", "lib"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "blis"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "blis", "lib"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "openblas-openmp"))
-            paths_pep518.append(
-                os.path.join(clean_path, "lib", "openblas-openmp", "lib")
-            )
-            paths_pep518.append(os.path.join(clean_path, "lib", "blis-openmp"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "blis-openmp", "lib"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "openblas-pthread"))
-            paths_pep518.append(
-                os.path.join(clean_path, "lib", "openblas-pthread", "lib")
-            )
-            paths_pep518.append(os.path.join(clean_path, "lib", "blis-pthread"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "blis-pthread", "lib"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "openblas-serial"))
-            paths_pep518.append(
-                os.path.join(clean_path, "lib", "openblas-serial", "lib")
-            )
-            paths_pep518.append(os.path.join(clean_path, "lib", "blis-serial"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "blis-serial", "lib"))
-            openblas_include_paths.append(
-                os.path.join(clean_path, "lib", "openblas", "include")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "lib", "openblas-openmp", "include")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "lib", "openblas-pthread", "include")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "lib", "openblas-serial", "include")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "lib", "blis", "include")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "lib", "blis-openmp", "include")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "lib", "blis-pthread", "include")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "lib", "blis-serial", "include")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "lib", "amd-blis", "include")
-            )
-            paths_pep518.append(os.path.join(clean_path, "lib", "gslcblas"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "cblas"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "blas"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "mkl"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "mkl", "lib"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "mkl", "lib", "intel"))
-            mkl_include_paths.append(os.path.join(clean_path, "lib", "mkl", "include"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "atlas"))
-            atlas_include_paths.append(
-                os.path.join(clean_path, "lib", "atlas", "include")
-            )
-            paths_pep518.append(os.path.join(clean_path, "lib", "atlas", "lib"))
-            paths_pep518.append(os.path.join(clean_path, "lib", "libatlas"))
-            atlas_include_paths.append(
-                os.path.join(clean_path, "lib", "libatlas", "include")
-            )
-            paths_pep518.append(os.path.join(clean_path, "lib", "libatlas", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "lib"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "gsl"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "gsl", "lib"))
+                gsl_include_paths.append(os.path.join(clean_path, "lib", "gsl", "include"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "openblas"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "openblas", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "blis"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "blis", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "openblas-openmp"))
+                paths_pep518.append(
+                    os.path.join(clean_path, "lib", "openblas-openmp", "lib")
+                )
+                paths_pep518.append(os.path.join(clean_path, "lib", "blis-openmp"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "blis-openmp", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "openblas-pthread"))
+                paths_pep518.append(
+                    os.path.join(clean_path, "lib", "openblas-pthread", "lib")
+                )
+                paths_pep518.append(os.path.join(clean_path, "lib", "blis-pthread"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "blis-pthread", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "openblas-serial"))
+                paths_pep518.append(
+                    os.path.join(clean_path, "lib", "openblas-serial", "lib")
+                )
+                paths_pep518.append(os.path.join(clean_path, "lib", "blis-serial"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "blis-serial", "lib"))
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "lib", "openblas", "include")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "lib", "openblas-openmp", "include")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "lib", "openblas-pthread", "include")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "lib", "openblas-serial", "include")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "lib", "blis", "include")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "lib", "blis-openmp", "include")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "lib", "blis-pthread", "include")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "lib", "blis-serial", "include")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "lib", "amd-blis", "include")
+                )
+                paths_pep518.append(os.path.join(clean_path, "lib", "gslcblas"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "cblas"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "blas"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "mkl"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "mkl", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "mkl", "lib", "intel"))
+                mkl_include_paths.append(os.path.join(clean_path, "lib", "mkl", "include"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "atlas"))
+                atlas_include_paths.append(
+                    os.path.join(clean_path, "lib", "atlas", "include")
+                )
+                paths_pep518.append(os.path.join(clean_path, "lib", "atlas", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "lib", "libatlas"))
+                atlas_include_paths.append(
+                    os.path.join(clean_path, "lib", "libatlas", "include")
+                )
+                paths_pep518.append(os.path.join(clean_path, "lib", "libatlas", "lib"))
 
-            paths_pep518.append(os.path.join(clean_path, "Lib"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "gsl"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "gsl", "lib"))
-            gsl_include_paths.append(os.path.join(clean_path, "Lib", "gsl", "include"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "openblas"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "openblas", "lib"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "blis"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "blis", "lib"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "openblas-openmp"))
-            paths_pep518.append(
-                os.path.join(clean_path, "Lib", "openblas-openmp", "lib")
-            )
-            paths_pep518.append(os.path.join(clean_path, "Lib", "openblas-pthread"))
-            paths_pep518.append(
-                os.path.join(clean_path, "Lib", "openblas-pthread", "lib")
-            )
-            paths_pep518.append(os.path.join(clean_path, "Lib", "openblas-serial"))
-            paths_pep518.append(
-                os.path.join(clean_path, "Lib", "openblas-serial", "lib")
-            )
-            paths_pep518.append(os.path.join(clean_path, "Lib", "blis-openmp"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "blis-openmp", "lib"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "blis-pthread"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "blis-pthread", "lib"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "blis-serial"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "blis-serial", "lib"))
-            openblas_include_paths.append(
-                os.path.join(clean_path, "Lib", "openblas", "include")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "Lib", "openblas-openmp", "include")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "Lib", "openblas-pthread", "include")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "Lib", "openblas-serial", "include")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "Lib", "blis", "include")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "Lib", "blis-openmp", "include")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "Lib", "blis-pthread", "include")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "Lib", "blis-serial", "include")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "Lib", "amd-blis", "include")
-            )
-            paths_pep518.append(os.path.join(clean_path, "Lib", "gslcblas"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "cblas"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "blas"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "mkl"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "mkl", "lib"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "mkl", "lib", "intel"))
-            mkl_include_paths.append(os.path.join(clean_path, "Lib", "mkl", "include"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "atlas"))
-            atlas_include_paths.append(
-                os.path.join(clean_path, "Lib", "atlas", "include")
-            )
-            paths_pep518.append(os.path.join(clean_path, "Lib", "atlas", "lib"))
-            paths_pep518.append(os.path.join(clean_path, "Lib", "libatlas"))
-            atlas_include_paths.append(
-                os.path.join(clean_path, "Lib", "libatlas", "include")
-            )
-            paths_pep518.append(os.path.join(clean_path, "Lib", "libatlas", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "Lib"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "gsl"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "gsl", "lib"))
+                gsl_include_paths.append(os.path.join(clean_path, "Lib", "gsl", "include"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "openblas"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "openblas", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "blis"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "blis", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "openblas-openmp"))
+                paths_pep518.append(
+                    os.path.join(clean_path, "Lib", "openblas-openmp", "lib")
+                )
+                paths_pep518.append(os.path.join(clean_path, "Lib", "openblas-pthread"))
+                paths_pep518.append(
+                    os.path.join(clean_path, "Lib", "openblas-pthread", "lib")
+                )
+                paths_pep518.append(os.path.join(clean_path, "Lib", "openblas-serial"))
+                paths_pep518.append(
+                    os.path.join(clean_path, "Lib", "openblas-serial", "lib")
+                )
+                paths_pep518.append(os.path.join(clean_path, "Lib", "blis-openmp"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "blis-openmp", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "blis-pthread"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "blis-pthread", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "blis-serial"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "blis-serial", "lib"))
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "Lib", "openblas", "include")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "Lib", "openblas-openmp", "include")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "Lib", "openblas-pthread", "include")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "Lib", "openblas-serial", "include")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "Lib", "blis", "include")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "Lib", "blis-openmp", "include")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "Lib", "blis-pthread", "include")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "Lib", "blis-serial", "include")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "Lib", "amd-blis", "include")
+                )
+                paths_pep518.append(os.path.join(clean_path, "Lib", "gslcblas"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "cblas"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "blas"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "mkl"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "mkl", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "mkl", "lib", "intel"))
+                mkl_include_paths.append(os.path.join(clean_path, "Lib", "mkl", "include"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "atlas"))
+                atlas_include_paths.append(
+                    os.path.join(clean_path, "Lib", "atlas", "include")
+                )
+                paths_pep518.append(os.path.join(clean_path, "Lib", "atlas", "lib"))
+                paths_pep518.append(os.path.join(clean_path, "Lib", "libatlas"))
+                atlas_include_paths.append(
+                    os.path.join(clean_path, "Lib", "libatlas", "include")
+                )
+                paths_pep518.append(os.path.join(clean_path, "Lib", "libatlas", "lib"))
 
-            system_include_paths.append(os.path.join(clean_path, "include"))
-            gsl_include_paths.append(os.path.join(clean_path, "include", "gsl"))
-            gsl_include_paths.append(
-                os.path.join(clean_path, "include", "gsl", "include")
-            )
-            gsl_include_paths.append(os.path.join(clean_path, "include", "gslcblas"))
-            system_include_paths.append(os.path.join(clean_path, "include", "cblas"))
-            system_include_paths.append(os.path.join(clean_path, "include", "blas"))
-            mkl_include_paths.append(os.path.join(clean_path, "include", "mkl"))
-            mkl_include_paths.append(os.path.join(clean_path, "include", "mkl", "lib"))
-            mkl_include_paths.append(
-                os.path.join(clean_path, "include", "mkl", "lib", "intel")
-            )
-            mkl_include_paths.append(
-                os.path.join(clean_path, "include", "mkl", "include")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "include", "openblas")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "include", "openblas", "include")
-            )
-            blis_include_paths.append(os.path.join(clean_path, "include", "blis"))
-            blis_include_paths.append(
-                os.path.join(clean_path, "include", "blis", "include")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "include", "openblas-openmp")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "include", "openblas-openmp", "include")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "include", "openblas-pthread")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "include", "openblas-pthread", "include")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "include", "openblas-serial")
-            )
-            openblas_include_paths.append(
-                os.path.join(clean_path, "include", "openblas-serial", "include")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "include", "blis-openmp")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "include", "blis-openmp", "include")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "include", "blis-pthread")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "include", "blis-pthread", "include")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "include", "blis-serial")
-            )
-            blis_include_paths.append(
-                os.path.join(clean_path, "include", "blis-serial", "include")
-            )
-            blis_include_paths.append(os.path.join(clean_path, "include", "amd-blis"))
-            atlas_include_paths.append(os.path.join(clean_path, "include", "atlas"))
-            atlas_include_paths.append(
-                os.path.join(clean_path, "include", "atlas", "include")
-            )
-            atlas_include_paths.append(os.path.join(clean_path, "include", "libatlas"))
-            atlas_include_paths.append(
-                os.path.join(clean_path, "lib", "libatlas", "include")
-            )
+                system_include_paths.append(os.path.join(clean_path, "include"))
+                gsl_include_paths.append(os.path.join(clean_path, "include", "gsl"))
+                gsl_include_paths.append(
+                    os.path.join(clean_path, "include", "gsl", "include")
+                )
+                gsl_include_paths.append(os.path.join(clean_path, "include", "gslcblas"))
+                system_include_paths.append(os.path.join(clean_path, "include", "cblas"))
+                system_include_paths.append(os.path.join(clean_path, "include", "blas"))
+                mkl_include_paths.append(os.path.join(clean_path, "include", "mkl"))
+                mkl_include_paths.append(os.path.join(clean_path, "include", "mkl", "lib"))
+                mkl_include_paths.append(
+                    os.path.join(clean_path, "include", "mkl", "lib", "intel")
+                )
+                mkl_include_paths.append(
+                    os.path.join(clean_path, "include", "mkl", "include")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "include", "openblas")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "include", "openblas", "include")
+                )
+                blis_include_paths.append(os.path.join(clean_path, "include", "blis"))
+                blis_include_paths.append(
+                    os.path.join(clean_path, "include", "blis", "include")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "include", "openblas-openmp")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "include", "openblas-openmp", "include")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "include", "openblas-pthread")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "include", "openblas-pthread", "include")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "include", "openblas-serial")
+                )
+                openblas_include_paths.append(
+                    os.path.join(clean_path, "include", "openblas-serial", "include")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "include", "blis-openmp")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "include", "blis-openmp", "include")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "include", "blis-pthread")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "include", "blis-pthread", "include")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "include", "blis-serial")
+                )
+                blis_include_paths.append(
+                    os.path.join(clean_path, "include", "blis-serial", "include")
+                )
+                blis_include_paths.append(os.path.join(clean_path, "include", "amd-blis"))
+                atlas_include_paths.append(os.path.join(clean_path, "include", "atlas"))
+                atlas_include_paths.append(
+                    os.path.join(clean_path, "include", "atlas", "include")
+                )
+                atlas_include_paths.append(os.path.join(clean_path, "include", "libatlas"))
+                atlas_include_paths.append(
+                    os.path.join(clean_path, "lib", "libatlas", "include")
+                )
 
     candidate_paths += paths_pep518
 
