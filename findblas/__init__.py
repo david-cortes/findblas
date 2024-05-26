@@ -478,7 +478,7 @@ def find_blas(allow_unidentified_blas=True, allow_pep518_paths=True):
                                 candidate_paths.append(os.path.join(candidate_hb_openblas, "lib"))
                             include_path_this = os.path.join(path_homebrew_blas, "include")
                             if os.path.exists(include_path_this):
-                                if blas_file == "openblas":
+                                if blas_lib == "openblas":
                                     openblas_include_paths.append(include_path_this)
                                 elif blas_lib == "blis":
                                     blis_include_paths.append(include_path_this)
